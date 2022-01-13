@@ -1,11 +1,11 @@
-import React from 'react'
+import React, {Component} from 'react';
 
-
-export default function WebTorrentGui() {
-
-    return (
-        <div>
-
-        </div>
-    )
+export class WebTorrentGui extends Component {
+    render() {
+        return (
+            <div>
+                <p>jhakdhbsadbsajk</p>
+            </div>
+        );
+    }
 }

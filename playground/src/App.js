@@ -5,8 +5,7 @@ function App() {
 
     return (
         <div className="App">
-            <WebTorrentGui
-            />
+            <WebTorrentGui/>
         </div>
     );
 }
