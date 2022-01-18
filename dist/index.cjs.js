@@ -4,6 +4,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var React = require('react');
 var axios = require('axios');
+var iconsMaterial = require('@mui/icons-material');
+var material = require('@mui/material');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -29,6 +31,9 @@ function _defineProperties(target, props) {
 function _createClass(Constructor, protoProps, staticProps) {
   if (protoProps) _defineProperties(Constructor.prototype, protoProps);
   if (staticProps) _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
   return Constructor;
 }
 
@@ -58,6 +63,9 @@ function _inherits(subClass, superClass) {
       writable: true,
       configurable: true
     }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
   });
   if (superClass) _setPrototypeOf(subClass, superClass);
 }
@@ -102,6 +110,8 @@ function _assertThisInitialized(self) {
 function _possibleConstructorReturn(self, call) {
   if (call && (typeof call === "object" || typeof call === "function")) {
     return call;
+  } else if (call !== void 0) {
+    throw new TypeError("Derived constructors may only return object or undefined");
   }
 
   return _assertThisInitialized(self);
@@ -126,28 +136,7 @@ function _createSuper(Derived) {
   };
 }
 
-var WebTorrentGui = /*#__PURE__*/function (_Component) {
-  _inherits(WebTorrentGui, _Component);
-
-  var _super = _createSuper(WebTorrentGui);
-
-  function WebTorrentGui() {
-    _classCallCheck(this, WebTorrentGui);
-
-    return _super.apply(this, arguments);
-  }
-
-  _createClass(WebTorrentGui, [{
-    key: "render",
-    value: function render() {
-      return /*#__PURE__*/React__default['default'].createElement("div", null, /*#__PURE__*/React__default['default'].createElement("p", null, "jhakdhbsadbsajk"));
-    }
-  }]);
-
-  return WebTorrentGui;
-}(React.Component);
-
-var WebTorrentHelper = function WebTorrentHelper(config) {
+var WebTorrentHelper = /*#__PURE__*/_createClass(function WebTorrentHelper(config) {
   var _this = this;
 
   _classCallCheck(this, WebTorrentHelper);
@@ -158,6 +147,20 @@ var WebTorrentHelper = function WebTorrentHelper(config) {
   });
 
   _defineProperty(this, "addTorrent", function (data) {
+    console.log("Acbjkakcjas", {
+      method: "post",
+      url: "/torrent/add",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: data
+    }, {
+      baseURL: _this.config.host + ":" + _this.config.port,
+      timeout: 1000,
+      headers: {
+        'X-Custom-Header': 'foobar'
+      }
+    });
     return _this.axios({
       method: "post",
       url: "/torrent/add",
@@ -212,14 +215,86 @@ var WebTorrentHelper = function WebTorrentHelper(config) {
   });
 
   this.config = config;
-  this.axios = axios__default['default'].create({
+  this.axios = axios__default["default"].create({
     baseURL: this.config.host + ":" + this.config.port,
     timeout: 1000,
     headers: {
       'X-Custom-Header': 'foobar'
     }
   });
-};
+});
+
+function Button(props) {
+  return /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement(material.IconButton, null, /*#__PURE__*/React__default["default"].createElement(iconsMaterial.Add, null)), "dasilkhdlkdlas");
+}
+
+var WebTorrentGui = /*#__PURE__*/function (_Component) {
+  _inherits(WebTorrentGui, _Component);
+
+  var _super = _createSuper(WebTorrentGui);
+
+  function WebTorrentGui() {
+    var _this;
+
+    _classCallCheck(this, WebTorrentGui);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+
+    _defineProperty(_assertThisInitialized(_this), "state", {
+      magnet: "magnet:?xt=urn:btih:6B73A48F50FB29269CD442244269EBAB4E688E27&dn=Ghostbusters%3A%20Afterlife%20(2021)%20720p%20h264%20Ac3%205.1%20Ita%20Eng%20Sub%20Ita%20Eng-MIRCrew&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Finferno.demonoid.is%3A3391%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2860&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce"
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "submit", function () {
+      var _this$state = _this.state,
+          client = _this$state.client,
+          magnet = _this$state.magnet;
+      client.addTorrent({
+        magnet: magnet
+      }).then(console.log).catch(console.error);
+    });
+
+    return _this;
+  }
+
+  _createClass(WebTorrentGui, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      this.setState({
+        client: new WebTorrentHelper({
+          host: "http://185.149.22.163",
+          port: 3000
+        })
+      });
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this2 = this;
+
+      var _this$state2 = this.state;
+          _this$state2.client;
+          var magnet = _this$state2.magnet;
+      return /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement("input", {
+        type: "text",
+        value: magnet,
+        onChange: function onChange(e) {
+          return _this2.setState({
+            magnet: e.target.value
+          });
+        }
+      }), /*#__PURE__*/React__default["default"].createElement(Button, {
+        onClick: this.submit
+      }, "Add"));
+    }
+  }]);
+
+  return WebTorrentGui;
+}(React.Component);
 
 exports.WebTorrentGui = WebTorrentGui;
 exports.WebTorrentHelper = WebTorrentHelper;
+//# sourceMappingURL=index.cjs.js.map

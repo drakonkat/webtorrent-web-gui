@@ -18,6 +18,18 @@ export class WebTorrentHelper {
     }
 
     addTorrent = (data) => {
+        console.log("Acbjkakcjas", {
+            method: "post",
+            url: "/torrent/add",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: data
+        }, {
+            baseURL: this.config.host + ":" + this.config.port,
+            timeout: 1000,
+            headers: {'X-Custom-Header': 'foobar'}
+        })
         return this.axios({
             method: "post",
             url: "/torrent/add",
