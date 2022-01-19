@@ -12,7 +12,7 @@ export class WebTorrentHelper {
         this.config = config
         this.axios = axios.create({
             baseURL: this.config.host + ":" + this.config.port,
-            timeout: 1000,
+            timeout: 120000,
             headers: {'X-Custom-Header': 'foobar'}
         });
     }

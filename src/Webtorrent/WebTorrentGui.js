@@ -1,15 +1,39 @@
 import React, {Component} from 'react';
 import {WebTorrentHelper} from "./WebTorrentHelper";
-import Button from "./component/Button";
+import {Button, Container, createTheme, CssBaseline, Divider, List, TextField, ThemeProvider} from "@mui/material";
+import TorrentCard from "./components/TorrentCard";
 
 export class WebTorrentGui extends Component {
 
     state = {
-        magnet: "magnet:?xt=urn:btih:6B73A48F50FB29269CD442244269EBAB4E688E27&dn=Ghostbusters%3A%20Afterlife%20(2021)%20720p%20h264%20Ac3%205.1%20Ita%20Eng%20Sub%20Ita%20Eng-MIRCrew&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Finferno.demonoid.is%3A3391%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2860&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce"
+        theme: createTheme({
+            palette: {
+                mode: 'dark'
+            }
+        }),
+        magnet: "magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fbig-buck-bunny.torrent",
+        torrents: []
     }
 
     componentDidMount() {
-        this.setState({client: new WebTorrentHelper({host: "http://185.149.22.163", port: 3000})})
+        this.setState({client: new WebTorrentHelper({host: "http://185.149.22.163", port: 3000})}, this.refreshStatus)
+        this.interval = setInterval(this.refreshStatus, 3000)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval)
+    }
+
+    refreshStatus = async () => {
+        try {
+            let {client} = this.state
+            let res = await client.checkStatus();
+            console.log("CHECK DATA: ", res.data)
+            this.setState({torrents: res.data})
+        } catch (e) {
+            console.error(e)
+        }
+
     }
 
     submit = () => {
@@ -18,16 +42,34 @@ export class WebTorrentGui extends Component {
     }
 
     render() {
-        let {client, magnet} = this.state;
+        let {client, torrents, magnet, theme} = this.state;
         return (
-            <div>
-                <input
-                    type="text"
-                    value={magnet}
-                    onChange={(e) => this.setState({magnet: e.target.value})}
-                />
-                <Button onClick={this.submit}>Add</Button>
-            </div>
+            <ThemeProvider theme={theme}>
+                <CssBaseline/>
+                <Container>
+                    <TextField
+                        id={"magnet"}
+                        type="text"
+                        variant={"outlined"}
+                        value={magnet}
+                        onChange={(e) => this.setState({magnet: e.target.value})}
+                    />
+                    <Button variant={"outlined"} onClick={this.submit}>Add</Button>
+                    {!torrents && <>
+                        No data
+                    </>
+                    }
+                    <List sx={{width: '100%'}}>
+                        {torrents && torrents.map(torrent => {
+                            return (<>
+                                <TorrentCard torrent={torrent}/>
+                                <Divider variant="inset" component="li"/>
+                            </>)
+                        })
+                        }
+                    </List>
+                </Container>
+            </ThemeProvider>
         );
     }
 }
