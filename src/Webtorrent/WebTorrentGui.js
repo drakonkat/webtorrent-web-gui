@@ -16,7 +16,8 @@ export class WebTorrentGui extends Component {
     }
 
     componentDidMount() {
-        this.setState({client: new WebTorrentHelper({host: "http://185.149.22.163", port: 3000})}, this.refreshStatus)
+        let {host, port} = this.props
+        this.setState({client: new WebTorrentHelper({host, port})}, this.refreshStatus)
         this.interval = setInterval(this.refreshStatus, 3000)
     }
 
