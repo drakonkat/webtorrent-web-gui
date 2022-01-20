@@ -1,5 +1,6 @@
 import React from 'react';
-import {Box, LinearProgress, ListItem, ListItemText, Typography} from "@mui/material";
+import {Box, Grid, IconButton, LinearProgress, ListItem, ListItemText, Typography} from "@mui/material";
+import {PauseCircle, PlayCircle} from "@mui/icons-material";
 
 function humanFileSize(bytes, si = false, dp = 1) {
     const thresh = si ? 1000 : 1024;
@@ -24,7 +25,7 @@ function humanFileSize(bytes, si = false, dp = 1) {
 }
 
 function TorrentCard(props) {
-    let {torrent} = props;
+    let {torrent, client, refresh} = props;
     let round = (input) => {
         return Math.round(input * 100) / 100
     }
@@ -44,7 +45,30 @@ function TorrentCard(props) {
                 primary={torrent.name}
                 secondary={
                     <React.Fragment>
-                        <LinearProgressWithLabel value={torrent.progress * 100}/>
+                        <Grid container
+                              direction="row"
+                              justifyContent="center"
+                              alignItems="center"
+                              spacing={2}>
+                            <Grid item
+                                  xs={10}>
+                                <LinearProgressWithLabel value={torrent.progress * 100}/>
+                            </Grid>
+                            <Grid item xs={2}>
+                                {torrent.paused ? <IconButton onClick={() => {
+                                        client.addTorrent({magnet: torrent.magnet}).then(refresh)
+                                    }
+                                    }>
+                                        <PlayCircle/>
+                                    </IconButton> :
+                                    <IconButton onClick={() => {
+                                        client.pauseTorrent({magnet: torrent.magnet}).then(refresh)
+                                    }
+                                    }>
+                                        <PauseCircle/>
+                                    </IconButton>}
+                            </Grid>
+                        </Grid>
                         <Typography
                             sx={{display: 'inline'}}
                             component="span"
@@ -59,7 +83,9 @@ function TorrentCard(props) {
                             <br/>
                             Size: {humanFileSize(size)}
                             <br/>
-                            Received: {humanFileSize(torrent.received)}
+                            {/*Received: {humanFileSize(torrent.received)}*/}
+                            {/*<br/>*/}
+                            {/*Uploaded: {humanFileSize(torrent.uploaded)}*/}
                             <br/>
                             Time remaining: {toTime(torrent.timeRemaining)}
                         </Typography>

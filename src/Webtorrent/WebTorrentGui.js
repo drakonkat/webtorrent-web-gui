@@ -39,7 +39,7 @@ export class WebTorrentGui extends Component {
 
     submit = () => {
         let {client, magnet} = this.state;
-        client.addTorrent({magnet}).then(console.log).catch(console.error)
+        client.addTorrent({magnet}).then(this.refreshStatus).catch(console.error)
     }
 
     render() {
@@ -63,7 +63,11 @@ export class WebTorrentGui extends Component {
                     <List sx={{width: '100%'}}>
                         {torrents && torrents.map(torrent => {
                             return (<>
-                                <TorrentCard torrent={torrent}/>
+                                <TorrentCard
+                                    torrent={torrent}
+                                    client={client}
+                                    refresh={this.refreshStatus}
+                                />
                                 <Divider variant="inset" component="li"/>
                             </>)
                         })
