@@ -1,6 +1,6 @@
 import React from 'react';
-import {Box, Grid, IconButton, LinearProgress, ListItem, ListItemText, Typography} from "@mui/material";
-import {PauseCircle, PlayCircle} from "@mui/icons-material";
+import {Box, Grid, IconButton, LinearProgress, ListItem, ListItemText, Tooltip, Typography} from "@mui/material";
+import {Delete, DeleteForever, PauseCircle, PlayCircle} from "@mui/icons-material";
 
 function humanFileSize(bytes, si = false, dp = 1) {
     const thresh = si ? 1000 : 1024;
@@ -55,18 +55,37 @@ function TorrentCard(props) {
                                 <LinearProgressWithLabel value={torrent.progress * 100}/>
                             </Grid>
                             <Grid item xs={2}>
-                                {torrent.paused ? <IconButton onClick={() => {
-                                        client.addTorrent({magnet: torrent.magnet}).then(refresh)
-                                    }
-                                    }>
-                                        <PlayCircle/>
-                                    </IconButton> :
+                                {torrent.paused ? <Tooltip title="Resume">
+                                        <IconButton onClick={() => {
+                                            client.addTorrent({magnet: torrent.magnet}).then(refresh)
+                                        }
+                                        }>
+                                            <PlayCircle/>
+                                        </IconButton>
+                                    </Tooltip> :
+                                    <Tooltip title="Pause">
+                                        <IconButton onClick={() => {
+                                            client.pauseTorrent({magnet: torrent.magnet}).then(refresh)
+                                        }
+                                        }>
+                                            <PauseCircle/>
+                                        </IconButton>
+                                    </Tooltip>}
+                                <Tooltip title="Delete from list">
                                     <IconButton onClick={() => {
-                                        client.pauseTorrent({magnet: torrent.magnet}).then(refresh)
+                                        client.removeTorrent({magnet: torrent.magnet}).then(refresh)
+                                    }}>
+                                        <Delete/>
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete with data">
+                                    <IconButton onClick={() => {
+                                        client.destroyTorrent({magnet: torrent.magnet}).then(refresh)
                                     }
                                     }>
-                                        <PauseCircle/>
-                                    </IconButton>}
+                                        <DeleteForever/>
+                                    </IconButton>
+                                </Tooltip>
                             </Grid>
                         </Grid>
                         <Typography
@@ -83,11 +102,7 @@ function TorrentCard(props) {
                             <br/>
                             Size: {humanFileSize(size)}
                             <br/>
-                            {/*Received: {humanFileSize(torrent.received)}*/}
-                            {/*<br/>*/}
-                            {/*Uploaded: {humanFileSize(torrent.uploaded)}*/}
-                            <br/>
-                            Time remaining: {toTime(torrent.timeRemaining)}
+                            {torrent.timeRemaining > 0 && "Time remaining: " + toTime(torrent.timeRemaining)}
                         </Typography>
                     </React.Fragment>
                 }

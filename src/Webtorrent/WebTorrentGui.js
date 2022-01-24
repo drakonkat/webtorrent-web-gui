@@ -1,7 +1,18 @@
 import React, {Component} from 'react';
 import {WebTorrentHelper} from "./WebTorrentHelper";
-import {Button, Container, createTheme, CssBaseline, Divider, List, TextField, ThemeProvider} from "@mui/material";
+import {
+    Button,
+    Container,
+    createTheme,
+    CssBaseline,
+    Divider,
+    List,
+    Stack,
+    TextField,
+    ThemeProvider
+} from "@mui/material";
 import TorrentCard from "./components/TorrentCard";
+import {Add, Pause, PlayCircle} from "@mui/icons-material";
 
 export class WebTorrentGui extends Component {
 
@@ -18,7 +29,7 @@ export class WebTorrentGui extends Component {
     componentDidMount() {
         let {host, port} = this.props
         this.setState({client: new WebTorrentHelper({host, port})}, this.refreshStatus)
-        this.interval = setInterval(this.refreshStatus, 3000)
+        this.interval = setInterval(this.refreshStatus, 10000)
     }
 
     componentWillUnmount() {
@@ -39,7 +50,35 @@ export class WebTorrentGui extends Component {
 
     submit = () => {
         let {client, magnet} = this.state;
-        client.addTorrent({magnet}).then(this.refreshStatus).catch(console.error)
+        client.addTorrent({magnet}).then(() => {
+            this.refreshStatus().then(() => {
+                this.setState({
+                    magnet: ""
+                })
+            })
+        }).catch(console.error)
+    }
+    resumeAll = () => {
+        try {
+            let {client, torrents} = this.state;
+            torrents.forEach(x => {
+                client.addTorrent({magnet: x.magnet})
+            })
+            this.refreshStatus().catch(console.error)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+    pauseAll = () => {
+        try {
+            let {client, torrents} = this.state;
+            torrents.forEach(x => {
+                client.pauseTorrent({magnet: x.magnet})
+            })
+            this.refreshStatus().catch(console.error)
+        } catch (e) {
+            console.error(e)
+        }
     }
 
     render() {
@@ -48,14 +87,19 @@ export class WebTorrentGui extends Component {
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
                 <Container>
-                    <TextField
-                        id={"magnet"}
-                        type="text"
-                        variant={"outlined"}
-                        value={magnet}
-                        onChange={(e) => this.setState({magnet: e.target.value})}
-                    />
-                    <Button variant={"outlined"} onClick={this.submit}>Add</Button>
+                    <Stack direction={"row"} spacing={2}>
+                        <TextField
+                            id={"magnet"}
+                            type="text"
+                            variant={"outlined"}
+                            value={magnet}
+                            onChange={(e) => this.setState({magnet: e.target.value})}
+                        />
+                        <Button startIcon={<Add/>} variant={"outlined"} onClick={this.submit}>Add</Button>
+                        <Button startIcon={<Pause/>} variant={"outlined"} onClick={this.pauseAll}>Pause all</Button>
+                        <Button startIcon={<PlayCircle/>} variant={"outlined"} onClick={this.resumeAll}>Resume
+                            all</Button>
+                    </Stack>
                     {!torrents && <>
                         No data
                     </>
