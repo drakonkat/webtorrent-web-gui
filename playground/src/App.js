@@ -5,7 +5,7 @@ function App() {
 
     return (
         <div className="App">
-            <WebTorrentGui host={"https://qbit.drakofeature.cf"} port={443}/>
+            <WebTorrentGui host={"http://localhost"} port={3000}/>
         </div>
     );
 }
