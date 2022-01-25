@@ -80,5 +80,25 @@ export class WebTorrentHelper {
             }
         });
     }
+    getConf = () => {
+        return this.axios({
+            method: "get",
+            url: "/config/",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    saveConf = (data) => {
+        return this.axios({
+            method: "post",
+            url: "/config/edit",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: data
+        });
+    }
 
 }
