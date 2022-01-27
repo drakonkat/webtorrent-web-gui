@@ -9,6 +9,7 @@ Props to pass to the UI component
 |:---------|:-------|:---------:|:-----------------------------------------------------------------------------------------------|
 | host     | String |   true    | The host where you run the service. If you start the other project locally is http://localhost |
 | port     | Number |   true    | The port where you run the service. If you start the other project locally is 3000             |
+| baseUrl     | String |   true    | Contains the URL for the API, example "http://localhost:3000"                                  |
 
 ### Examples
 

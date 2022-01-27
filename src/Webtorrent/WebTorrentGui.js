@@ -33,8 +33,8 @@ export class WebTorrentGui extends Component {
     }
 
     componentDidMount() {
-        let {host, port} = this.props
-        this.setState({client: new WebTorrentHelper({host, port})}, () => {
+        let {host, port, baseUrl} = this.props
+        this.setState({client: new WebTorrentHelper(baseUrl ? {baseUrl} : {baseUrl: host + ":" + port})}, () => {
             this.refreshStatus()
             this.getConfig()
         })

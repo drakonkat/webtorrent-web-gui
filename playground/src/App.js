@@ -5,7 +5,7 @@ function App() {
 
     return (
         <div className="App">
-            <WebTorrentGui host={"http://localhost"} port={3000}/>
+            <WebTorrentGui baseUrl={"http://localhost:3000"}/>
         </div>
     );
 }

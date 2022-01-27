@@ -4,32 +4,19 @@ import axios from "axios";
 export class WebTorrentHelper {
 
     config = {
-        host: "",
-        port: "3000"
+        baseUrl: ""
     }
 
     constructor(config) {
         this.config = config
         this.axios = axios.create({
-            baseURL: this.config.host + ":" + this.config.port,
+            baseURL: this.config.baseUrl,
             timeout: 120000,
             headers: {'X-Custom-Header': 'foobar'}
         });
     }
 
     addTorrent = (data) => {
-        console.log("Acbjkakcjas", {
-            method: "post",
-            url: "/torrent/add",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            data: data
-        }, {
-            baseURL: this.config.host + ":" + this.config.port,
-            timeout: 1000,
-            headers: {'X-Custom-Header': 'foobar'}
-        })
         return this.axios({
             method: "post",
             url: "/torrent/add",
