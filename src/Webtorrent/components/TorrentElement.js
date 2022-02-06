@@ -67,12 +67,12 @@ class TorrentElement extends Component {
                              id={file.name}>{file.name} - {progress}%</Button>
         } else {
             output =
-                <Tooltip title={"Cannot be downloaded, wait for the buffering then download it"}><Button size={"small"}
-                                                                                                         startIcon={
-                                                                                                             <BlockOutlined/>}
-                                                                                                         variant={"outlined"}
-                                                                                                         color={"primary"}
-                                                                                                         id={file.name}>Buffering... {file.name} - <CircularProgressWithLabel
+                <Tooltip title={"Cannot be streamed, wait for the buffering to download it"}><Button size={"small"}
+                                                                                                     startIcon={
+                                                                                                         <BlockOutlined/>}
+                                                                                                     variant={"outlined"}
+                                                                                                     color={"primary"}
+                                                                                                     id={file.name}>Buffering... {file.name} - <CircularProgressWithLabel
                     value={progress}/></Button></Tooltip>
         }
         return <>{output} - <Button disabled={downloadLink == null} variant={"contained"} color={"primary"}
