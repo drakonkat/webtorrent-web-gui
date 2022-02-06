@@ -1,6 +1,6 @@
 {
   "name": "webtorrent-web-gui",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "The component proupose is to have a gui or a javascript class to manage a webtorrent-express-api server",
   "keywords": [],
   "repository": {
@@ -36,13 +36,15 @@
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-svg-import": "^1.6.0",
     "rollup-plugin-typescript2": "^0.31.1",
+    "@rollup/plugin-json": "^4.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "typescript": "3.8.3"
   },
   "scripts": {
     "build": "rollup -c",
     "build-watch": "rollup -c -w",
     "start-playground": "cd playground && npm run start",
-    "i-all": "yarn install && cd playground && yarn install",
+    "i-all": "npm install && cd playground && npm install",
     "dev": "npm-run-all --parallel build-watch start-playground"
   },
   "browserslist": [
@@ -50,8 +52,5 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ],
-  "dependencies": {
-    "rollup-plugin-node-resolve": "^5.2.0"
-  }
+  ]
 }

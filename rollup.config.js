@@ -1,4 +1,5 @@
 import babel from '@rollup/plugin-babel';
+import json from '@rollup/plugin-json';
 import external from 'rollup-plugin-peer-deps-external';
 import del from 'rollup-plugin-delete';
 import pkg from './package.json';
@@ -23,10 +24,11 @@ export default {
     ],
     plugins: [
         external(),
+        json(),
         babel({
             exclude: 'node_modules/**'
         }),
-        resolve(),
+        resolve({preferBuiltins: true}),
         commonjs(),
         del({targets: ['dist/*']}),
         svg()
