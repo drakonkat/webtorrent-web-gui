@@ -10,6 +10,7 @@
     "axios": "file:../node_modules/axios",
     "react": "file:../node_modules/react",
     "react-dom": "file:../node_modules/react-dom",
+    "webtorrent": "file:../node_modules/webtorrent",
     "react-scripts": "4.0.3",
     "web-vitals": "^1.0.1",
     "webtorrent-web-gui": "file:.."

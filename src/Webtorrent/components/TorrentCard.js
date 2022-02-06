@@ -1,20 +1,11 @@
 import React from 'react';
 import {Box, Grid, IconButton, LinearProgress, ListItem, ListItemText, Tooltip, Typography} from "@mui/material";
-import {Delete, DeleteForever, PauseCircle, PlayCircle} from "@mui/icons-material";
-import {humanFileSize} from "../utils";
+import {Delete, DeleteForever, Download, PauseCircle, PlayCircle, Upload} from "@mui/icons-material";
+import {humanFileSize, round, toTime} from "../utils";
 
 
 function TorrentCard(props) {
     let {torrent, client, refresh} = props;
-    let round = (input) => {
-        return Math.round(input * 100) / 100
-    }
-    let toTime = (input) => {
-        let date = new Date(0);
-        date.setSeconds(input); // specify value for SECONDS here
-        return date.toISOString().substr(11, 8);
-
-    }
     let size = 0;
     torrent.files.forEach(file => {
         size = size + file.length
@@ -22,19 +13,28 @@ function TorrentCard(props) {
     return (
         <ListItem key={torrent.infoHash} alignItems="flex-start">
             <ListItemText
-                primary={torrent.name}
+                primary={<Typography
+                    sx={{display: "flex"}}
+                    variant="body2"
+                >
+                    {torrent.name} (<Download
+                    fontSize="small"/>{humanFileSize(torrent.downloadSpeed) + "/s"} {humanFileSize(torrent.uploadSpeed) + "/s"}<Upload
+                    fontSize="small"/>)
+                </Typography>}
                 secondary={
                     <React.Fragment>
                         <Grid container
                               direction="row"
-                              justifyContent="center"
+                              justifyContent="space-between"
                               alignItems="center"
                               spacing={2}>
                             <Grid item
                                   xs={10}>
                                 <LinearProgressWithLabel value={torrent.progress * 100}/>
                             </Grid>
-                            <Grid item xs={2}>
+                            <Grid item container xs={2} direction="row"
+                                  justifyContent="flex-end"
+                            >
                                 {torrent.paused ? <Tooltip title="Resume">
                                         <IconButton onClick={() => {
                                             client.addTorrent({magnet: torrent.magnet}).then(refresh)
@@ -68,22 +68,36 @@ function TorrentCard(props) {
                                 </Tooltip>
                             </Grid>
                         </Grid>
-                        <Typography
-                            sx={{display: 'inline'}}
-                            component="span"
-                            variant="body2"
-                            color="text.primary"
-                        >
-                            Download speed: {humanFileSize(torrent.downloadSpeed)}/s
-                            <br/>
-                            Upload speed: {humanFileSize(torrent.uploadSpeed)}/s
-                            <br/>
-                            Ratio: {round(torrent.ratio)}
-                            <br/>
-                            Size: {humanFileSize(size)}
-                            <br/>
-                            {torrent.timeRemaining > 0 && "Time remaining: " + toTime(torrent.timeRemaining)}
-                        </Typography>
+                        <Grid container
+                              direction="row"
+                              justifyContent="space-between"
+                              alignItems="center"
+                              spacing={2}>
+                            <Grid item>
+
+                                <Typography
+                                    variant="body2"
+                                >
+                                    Ratio: {round(torrent.ratio)}
+                                </Typography>
+                            </Grid>
+                            <Grid item>
+
+                                <Typography
+                                    variant="body2"
+                                >
+                                    Size: {humanFileSize(size)}
+                                </Typography>
+                            </Grid>
+                            <Grid item>
+
+                                <Typography
+                                    variant="body2"
+                                >
+                                    {torrent.timeRemaining > 0 && "Time remaining: " + toTime(torrent.timeRemaining)}
+                                </Typography>
+                            </Grid>
+                        </Grid>
                     </React.Fragment>
                 }
             />

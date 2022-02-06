@@ -17,6 +17,16 @@ export function humanFileSize(bytes, si = false, dp = 1) {
     } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
 
 
-    return bytes.toFixed(dp) + ' ' + units[u];
+    return round(bytes.toFixed(dp)) + ' ' + units[u];
 }
 
+export function round(input) {
+    return Math.round(input * 100) / 100
+}
+
+export function toTime(input) {
+    let date = new Date(0);
+    date.setSeconds(input); // specify value for SECONDS here
+    return date.toISOString().substr(11, 8);
+
+}
