@@ -46,10 +46,14 @@ export class WebTorrentGui extends Component {
 
     refreshStatus = async () => {
         try {
-            let {client} = this.state
+            let {client, expanded} = this.state
             let res = await client.checkStatus();
-            let confRes = await client.getConf();
-            this.setState({torrents: res.data, configuration: confRes.data})
+            if (!expanded) {
+                let confRes = await client.getConf();
+                this.setState({torrents: res.data, configuration: confRes.data})
+            } else {
+                this.setState({torrents: res.data})
+            }
         } catch (e) {
             console.error(e)
         }
