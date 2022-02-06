@@ -1,11 +1,25 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Box, Grid, IconButton, LinearProgress, ListItem, ListItemText, Tooltip, Typography} from "@mui/material";
-import {Delete, DeleteForever, Download, PauseCircle, PlayCircle, Upload} from "@mui/icons-material";
+import {
+    Delete,
+    DeleteForever,
+    Download,
+    PauseCircle,
+    PlayCircle,
+    ScreenShare,
+    StopScreenShare,
+    Upload
+} from "@mui/icons-material";
 import {humanFileSize, round, toTime} from "../utils";
+import WebTorrent from "webtorrent";
+import TorrentList from "./TorrentList";
 
 
 function TorrentCard(props) {
     let {torrent, client, refresh} = props;
+    let [localClient, setLocalClient] = useState(null);
+    let [torrents, setTorrents] = useState(null);
+    let [loading, setLoading] = useState(false);
     let size = 0;
     torrent.files.forEach(file => {
         size = size + file.length
@@ -66,6 +80,28 @@ function TorrentCard(props) {
                                         <DeleteForever/>
                                     </IconButton>
                                 </Tooltip>
+                                <Tooltip title="Stream torrent">
+                                    {!localClient ? <IconButton onClick={() => {
+                                        setLoading(true)
+                                        localClient = new WebTorrent();
+                                        localClient.add(torrent.magnet, {}, async (torrent) => {
+                                            setTorrents(torrent)
+                                            setLoading(false)
+                                        })
+                                        localClient.on("error", (err) => {
+                                            setLoading(false)
+                                            console.error(err)
+                                        })
+                                        setLocalClient(localClient)
+                                    }}>
+                                        <ScreenShare/>
+                                    </IconButton> : <IconButton onClick={() => {
+                                        localClient.destroy();
+                                        setLocalClient(null)
+                                    }}>
+                                        <StopScreenShare/>
+                                    </IconButton>}
+                                </Tooltip>
                             </Grid>
                         </Grid>
                         <Grid container
@@ -98,6 +134,8 @@ function TorrentCard(props) {
                                 </Typography>
                             </Grid>
                         </Grid>
+                        {torrents && torrents.files ? <TorrentList torrentContent={torrents.files}/> : null}
+                        {loading && <LinearProgress/>}
                     </React.Fragment>
                 }
             />
