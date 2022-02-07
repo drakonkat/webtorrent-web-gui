@@ -9,6 +9,7 @@ import {
     createTheme,
     CssBaseline,
     Divider,
+    Grid,
     List,
     Stack,
     TextField,
@@ -18,6 +19,7 @@ import {
 import TorrentCard from "./components/TorrentCard";
 import {Add, Download, Pause, PlayCircle, Save, Settings, Upload} from "@mui/icons-material";
 import {humanFileSize} from "./utils";
+import WebTorrent from "webtorrent";
 
 export class WebTorrentGui extends Component {
 
@@ -31,6 +33,7 @@ export class WebTorrentGui extends Component {
         addForm: {},
         expanded: false,
         expandedType: 0,
+        localClient: new WebTorrent({destroyStoreOnDestroy: false}),
         configuration: {}
     }
 
@@ -180,7 +183,7 @@ export class WebTorrentGui extends Component {
     }
 
     render() {
-        let {client, torrents, theme, expanded, configuration} = this.state;
+        let {client, torrents, theme, expanded, configuration, localClient} = this.state;
         let {actualDownload, actualUpload, actualRatio} = configuration;
 
         return (
@@ -190,35 +193,46 @@ export class WebTorrentGui extends Component {
                     <Accordion TransitionProps={{unmountOnExit: true}} expanded={expanded} onChange={() => {
                     }}>
                         <AccordionSummary>
-                            <Stack direction={"row"} spacing={2}>
-                                <Button size={"small"} startIcon={<Add/>} variant={"outlined"} onClick={() => {
-                                    this.setState({expanded: !expanded, expandedType: 1})
-                                }}>
-                                    Add
-                                </Button>
-                                <Button size={"small"} startIcon={<Pause/>} variant={"outlined"}
-                                        onClick={this.pauseAll}>
-                                    Pause all
-                                </Button>
-                                <Button size={"small"} startIcon={<PlayCircle/>} variant={"outlined"}
-                                        onClick={this.resumeAll}>
-                                    Resume all
-                                </Button>
-                                <Button size={"small"} startIcon={<Settings/>} variant={"outlined"} onClick={() => {
-                                    this.setState({expanded: !expanded, expandedType: 0})
-                                }}>
-                                    Settings
-                                </Button>
-                                <Typography
-                                    sx={{display: "flex"}}
-                                    variant="body2"
-                                >
-                                    <Download
-                                        fontSize="small"/>{humanFileSize(actualDownload) + "/s"} {humanFileSize(actualUpload) + "/s"}<Upload
-                                    fontSize="small"/><br/>
-                                    {/*Ratio: {round(actualRatio)}*/}
-                                </Typography>
-                            </Stack>
+                            <Grid container direction={"row"} justifyContent={"flex-start"} alignItems={"center"}
+                                  spacing={2}>
+                                <Grid item xs={"auto"} md={"auto"} lg={"auto"}>
+                                    <Button size={"small"} startIcon={<Add/>} variant={"outlined"} onClick={() => {
+                                        this.setState({expanded: !expanded, expandedType: 1})
+                                    }}>
+                                        Add
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={"auto"} md={"auto"} lg={"auto"}>
+                                    <Button size={"small"} startIcon={<Pause/>} variant={"outlined"}
+                                            onClick={this.pauseAll}>
+                                        Pause all
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={"auto"} md={"auto"} lg={"auto"}>
+                                    <Button size={"small"} startIcon={<PlayCircle/>} variant={"outlined"}
+                                            onClick={this.resumeAll}>
+                                        Resume all
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={"auto"} md={"auto"} lg={"auto"}>
+                                    <Button size={"small"} startIcon={<Settings/>} variant={"outlined"} onClick={() => {
+                                        this.setState({expanded: !expanded, expandedType: 0})
+                                    }}>
+                                        Settings
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={"auto"} md={"auto"} lg={"auto"}>
+                                    <Typography
+                                        sx={{display: "flex"}}
+                                        variant="body2"
+                                    >
+                                        <Download
+                                            fontSize="small"/>{humanFileSize(actualDownload) + "/s"} {humanFileSize(actualUpload) + "/s"}<Upload
+                                        fontSize="small"/><br/>
+                                        {/*Ratio: {round(actualRatio)}*/}
+                                    </Typography>
+                                </Grid>
+                            </Grid>
                         </AccordionSummary>
                         <AccordionDetails>
                             {this.renderSwitch()}
@@ -235,6 +249,7 @@ export class WebTorrentGui extends Component {
                                     key={torrent.infoHash}
                                     torrent={torrent}
                                     client={client}
+                                    localClient={localClient}
                                     refresh={this.refreshStatus}
                                 />
                                 <Divider key={torrent.infoHash + "-divider"} variant="inset" component="li"/>

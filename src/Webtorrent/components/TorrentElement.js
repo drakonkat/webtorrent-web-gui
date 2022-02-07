@@ -6,6 +6,7 @@ import {round} from "../utils";
 
 class TorrentElement extends Component {
     state = {
+        opened: false,
         progress: 0,
         downloadLink: null,
         canBeReproduced: true
@@ -38,47 +39,63 @@ class TorrentElement extends Component {
 
     render() {
         let {file, elementToAppend, elementToRender, onClick, onError} = this.props
-        let {progress, downloadLink, canBeReproduced} = this.state
+        let {progress, downloadLink, canBeReproduced, opened} = this.state
         let mimeTypeTemp = mime.getType(file.name);
         let output;
 
         if (canBeReproduced && mimeTypeTemp.includes("video") || mimeTypeTemp.includes("image")) {
-            output = <Button size={"small"} startIcon={<PlayCircleFilled/>} variant={"outlined"} color={"primary"}
-                             onClick={() => {
-                                 onClick(file);
-                                 if (elementToAppend) {
-                                     file.appendTo(elementToAppend, {}, (err, elem) => {
-                                         if (onError) {
-                                             onError(err, elem)
-                                         }
-                                         this.setState({canBeReproduced: false})
-                                     });
+            output = <Tooltip
+                title={"A file to be downloaded need to be fully buffered (Usually mkv need to be buffered to play it in the browser)"}>
+                <Button size={"small"}
+                        startIcon={<PlayCircleFilled/>}
+                        variant={"outlined"}
+                        color={"primary"}
+                        onClick={() => {
+                            onClick(file);
+                            if (elementToAppend) {
+                                file.appendTo(elementToAppend, {maxBlobLength: 2066664530000}, (err, elem) => {
+                                    if (onError) {
+                                        onError(err, elem)
+                                    }
+                                    if (err) {
+                                        this.setState({canBeReproduced: false})
+                                    }
+                                });
                                  }
-                                 if (elementToRender) {
-                                     file.renderTo(elementToRender, {}, (err, elem) => {
-                                         if (onError) {
-                                             onError(err, elem)
-                                         }
-                                         this.setState({canBeReproduced: false})
-                                     });
-                                 }
-                             }
-                             }
-                             id={file.name}>{file.name} - {progress}%</Button>
+                            if (elementToRender) {
+                                file.renderTo(elementToRender, {maxBlobLength: 2066664530000}, (err, elem) => {
+                                    if (onError) {
+                                        onError(err, elem)
+                                    }
+                                    if (err) {
+                                        this.setState({canBeReproduced: false})
+                                    }
+                                });
+                            }
+                        }}
+                        id={file.name}>{file.name} - <CircularProgressWithLabel value={progress}/>
+                </Button>
+            </Tooltip>
         } else {
-            output =
-                <Tooltip title={"Cannot be streamed, wait for the buffering to download it"}><Button size={"small"}
-                                                                                                     startIcon={
-                                                                                                         <BlockOutlined/>}
-                                                                                                     variant={"outlined"}
-                                                                                                     color={"primary"}
-                                                                                                     id={file.name}>Buffering... {file.name} - <CircularProgressWithLabel
-                    value={progress}/></Button></Tooltip>
+            output = <Tooltip title={"Cannot be streamed, wait for the buffering to download it"}>
+                <Button size={"small"}
+                        startIcon={
+                            <BlockOutlined/>}
+                        variant={"outlined"}
+                        color={"primary"}
+                        id={file.name}>
+                    Buffering... {file.name} - <CircularProgressWithLabel value={progress}/>
+                </Button>
+            </Tooltip>
         }
-        return <>{output} - <Button disabled={downloadLink == null} variant={"contained"} color={"primary"}
+        return <>{output} - <Button disabled={downloadLink == null}
+                                    variant={"contained"}
+                                    color={"primary"}
                                     onClick={() => {
                                         window.open(downloadLink)
-                                    }}><CloudDownloadOutlined/></Button> </>;
+                                    }}><CloudDownloadOutlined/>
+        </Button>
+        </>;
     }
 }
 

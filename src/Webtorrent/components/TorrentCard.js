@@ -11,13 +11,11 @@ import {
     Upload
 } from "@mui/icons-material";
 import {humanFileSize, round, toTime} from "../utils";
-import WebTorrent from "webtorrent";
 import TorrentList from "./TorrentList";
 
 
 function TorrentCard(props) {
-    let {torrent, client, refresh} = props;
-    let [localClient, setLocalClient] = useState(null);
+    let {torrent, client, refresh, localClient} = props;
     let [torrents, setTorrents] = useState(null);
     let [loading, setLoading] = useState(false);
     let size = 0;
@@ -27,14 +25,28 @@ function TorrentCard(props) {
     return (
         <ListItem key={torrent.infoHash} alignItems="flex-start">
             <ListItemText
-                primary={<Typography
-                    sx={{display: "flex"}}
-                    variant="body2"
-                >
-                    {torrent.name} (<Download
-                    fontSize="small"/>{humanFileSize(torrent.downloadSpeed) + "/s"} {humanFileSize(torrent.uploadSpeed) + "/s"}<Upload
-                    fontSize="small"/>)
-                </Typography>}
+                primary={<Grid container spacing={2}>
+                    <Grid item>
+
+                        <Typography
+                            sx={{display: "flex"}}
+                            variant="body2"
+                        >
+                            {torrent.name}
+                        </Typography>
+                    </Grid>
+                    <Grid item>
+
+                        <Typography
+                            sx={{display: "flex"}}
+                            variant="body2"
+                        >
+                            (<Download
+                            fontSize="small"/>{humanFileSize(torrent.downloadSpeed) + "/s"} {humanFileSize(torrent.uploadSpeed) + "/s"}<Upload
+                            fontSize="small"/>)
+                        </Typography>
+                    </Grid>
+                </Grid>}
                 secondary={
                     <React.Fragment>
                         <Grid container
@@ -43,10 +55,12 @@ function TorrentCard(props) {
                               alignItems="center"
                               spacing={2}>
                             <Grid item
-                                  xs={10}>
+                                  xs={12}
+                                  md={9}
+                                  lg={10}>
                                 <LinearProgressWithLabel value={torrent.progress * 100}/>
                             </Grid>
-                            <Grid item container xs={2} direction="row"
+                            <Grid item container xs={12} md={3} lg={2} direction="row"
                                   justifyContent="flex-end"
                             >
                                 {torrent.paused ? <Tooltip title="Resume">
@@ -81,9 +95,8 @@ function TorrentCard(props) {
                                     </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Stream torrent">
-                                    {!localClient ? <IconButton onClick={() => {
+                                    {!localClient.get(torrent.magnet) ? <IconButton onClick={() => {
                                         setLoading(true)
-                                        localClient = new WebTorrent();
                                         localClient.add(torrent.magnet, {}, async (torrent) => {
                                             setTorrents(torrent)
                                             setLoading(false)
@@ -92,12 +105,12 @@ function TorrentCard(props) {
                                             setLoading(false)
                                             console.error(err)
                                         })
-                                        setLocalClient(localClient)
                                     }}>
                                         <ScreenShare/>
                                     </IconButton> : <IconButton onClick={() => {
-                                        localClient.destroy();
-                                        setLocalClient(null)
+                                        document.getElementById("PREDISPOSING" + torrent.infoHash).innerHTML = "";
+                                        localClient.get(torrent.magnet).destroy();
+                                        setTorrents(null)
                                     }}>
                                         <StopScreenShare/>
                                     </IconButton>}
@@ -134,7 +147,8 @@ function TorrentCard(props) {
                                 </Typography>
                             </Grid>
                         </Grid>
-                        {torrents && torrents.files ? <TorrentList torrentContent={torrents.files}/> : null}
+                        {torrents && torrents.files ?
+                            <TorrentList id={torrent.infoHash} torrentContent={torrents.files}/> : null}
                         {loading && <LinearProgress/>}
                     </React.Fragment>
                 }

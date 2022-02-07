@@ -26,7 +26,7 @@ export function round(input) {
 
 export function toTime(input) {
     let date = new Date(0);
-    date.setSeconds(input); // specify value for SECONDS here
+    date.setSeconds(input / 1000); // specify value for SECONDS here
     return date.toISOString().substr(11, 8);
 
 }
