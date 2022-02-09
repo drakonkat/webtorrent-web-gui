@@ -39,8 +39,25 @@ export class WebTorrentGui extends Component {
 
     componentDidMount() {
         let {host, port, baseUrl} = this.props
-        this.setState({client: new WebTorrentHelper(baseUrl ? {baseUrl} : {baseUrl: host + ":" + port})}, this.refreshStatus)
+        this.setState({client: new WebTorrentHelper(baseUrl ? {baseUrl} : {baseUrl: host + ":" + port})}, async () => {
+            await this.refreshStatus();
+            if (window.location.search && window.location.search.includes("?magnet=")) {
+                let magnet = window.location.search.substring(8, window.location.search.length);
+                console.debug("Founded magnet: ", magnet)
+                this.setState({
+                    expanded: true,
+                    expandedType: 1,
+                    addForm: {
+                        magnet: magnet
+                    }
+                })
+            }
+        })
         this.interval = setInterval(this.refreshStatus, 3000)
+        window.navigator.registerProtocolHandler("magnet",
+            window.location.href + "?magnet=%s",
+            "TorQuiX");
+
     }
 
     componentWillUnmount() {
