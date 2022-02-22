@@ -54,13 +54,13 @@ export class WebTorrentGui extends Component {
             }
         })
         this.interval = setInterval(this.refreshStatus, 3000)
-        try {
-            window.navigator.registerProtocolHandler("magnet",
-                window.location.href + "?magnet=%s",
-                "TorQuiX");
-        } catch (e) {
-            console.error("Error registering magnet: ", e)
-        }
+        // try {
+        //     window.navigator.registerProtocolHandler("magnet",
+        //         window.location.href + "?magnet=%s",
+        //         "TorQuiX");
+        // } catch (e) {
+        //     console.error("Error registering magnet: ", e)
+        // }
 
     }
 
