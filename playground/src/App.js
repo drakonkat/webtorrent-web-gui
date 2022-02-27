@@ -1,12 +1,10 @@
-import {WebTorrentGui} from 'webtorrent-web-gui';
+import {WebTorrentGuiV2} from 'webtorrent-web-gui';
 
 
 function App() {
 
     return (
-        <div className="App">
-            <WebTorrentGui baseUrl={"http://localhost:3000"}/>
-        </div>
+        <WebTorrentGuiV2 baseUrl={"http://localhost:3000"}/>
     );
 }
 
