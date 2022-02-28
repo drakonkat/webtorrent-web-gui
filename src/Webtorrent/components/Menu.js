@@ -1,4 +1,14 @@
-import {Divider, List, ListItem, ListItemAvatar, ListItemText, Stack, Switch, Typography} from "@mui/material";
+import {
+    Divider,
+    List,
+    ListItem,
+    ListItemAvatar,
+    ListItemButton,
+    ListItemText,
+    Stack,
+    Switch,
+    Typography
+} from "@mui/material";
 import {DarkMode, Download, Home, LibraryBooks, LibraryMusic, Movie, Settings, Tv, Upload} from "@mui/icons-material";
 import React from "react";
 
@@ -32,7 +42,8 @@ export function Menu(props) {
                             primary="Home"
                         />
                     </ListItem>
-                    <ListItem
+                    <ListItemButton
+                        disabled
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -45,8 +56,9 @@ export function Menu(props) {
                         <ListItemText
                             primary="Downloading"
                         />
-                    </ListItem>
-                    <ListItem
+                    </ListItemButton>
+                    <ListItemButton
+                        disabled
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -59,16 +71,17 @@ export function Menu(props) {
                         <ListItemText
                             primary="Seeding"
                         />
-                    </ListItem>
+                    </ListItemButton>
                 </List>
                 <Divider/>
                 <List dense={true}>
                     <ListItem>
                         <ListItemText
-                            primary="Explore"
+                            primary="Explore (Coming soon)"
                         />
                     </ListItem>
-                    <ListItem
+                    <ListItemButton
+                        disabled
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -81,8 +94,9 @@ export function Menu(props) {
                         <ListItemText
                             primary="Movies"
                         />
-                    </ListItem>
-                    <ListItem
+                    </ListItemButton>
+                    <ListItemButton
+                        disabled
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -95,8 +109,9 @@ export function Menu(props) {
                         <ListItemText
                             primary="Series"
                         />
-                    </ListItem>
-                    <ListItem
+                    </ListItemButton>
+                    <ListItemButton
+                        disabled
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -109,8 +124,9 @@ export function Menu(props) {
                         <ListItemText
                             primary="Music"
                         />
-                    </ListItem>
-                    <ListItem
+                    </ListItemButton>
+                    <ListItemButton
+                        disabled
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -123,7 +139,7 @@ export function Menu(props) {
                         <ListItemText
                             primary="Book"
                         />
-                    </ListItem>
+                    </ListItemButton>
                 </List>
                 <Divider/>
             </Stack>
@@ -133,7 +149,11 @@ export function Menu(props) {
                         primary="Configuration"
                     />
                 </ListItem>
-                <ListItem>
+                <ListItem onClick={() => {
+                    if (props.openSettings) {
+                        props.openSettings()
+                    }
+                }}>
                     <ListItemAvatar>
                         <Stack alignItems={"center"} justifyContent={"center"}>
                             <Settings/>

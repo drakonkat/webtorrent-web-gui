@@ -21,20 +21,14 @@ import {
     ThemeProvider,
     Typography
 } from "@mui/material";
-import {
-    AddCircle,
-    KeyboardArrowDown,
-    KeyboardArrowUp,
-    PauseCircle,
-    PlayCircle,
-    Save,
-    Search
-} from "@mui/icons-material";
+import {AddCircle, KeyboardArrowDown, KeyboardArrowUp, PauseCircle, PlayCircle, Search} from "@mui/icons-material";
 import {humanFileSize, toTime} from "./utils";
 import WebTorrent from "webtorrent";
 import {LinearProgressWithLabel} from "./components/LinearProgressWithLabel";
 import * as PropTypes from "prop-types";
 import {Menu} from "./components/Menu";
+import AddTorrent from "./components/AddTorrent";
+import ConfigDialog from "./components/ConfigDialog";
 
 const defaultTheme = createTheme();
 const options = {
@@ -92,29 +86,25 @@ export class WebTorrentGuiV2 extends Component {
         theme: createTheme(options),
         selectedTorrent: [],
         torrents: [],
-        addForm: {},
-        expanded: false,
-        expandedType: 0,
+        showAddTorrent: false,
+        showConfig: false,
         localClient: new WebTorrent({destroyStoreOnDestroy: false}),
         configuration: {}
+
     }
 
     componentDidMount() {
         let {host, port, baseUrl} = this.props
         this.setState({client: new WebTorrentHelper(baseUrl ? {baseUrl} : {baseUrl: host + ":" + port})}, async () => {
             await this.refreshStatus();
-            if (window.location.search && window.location.search.includes("?magnet=")) {
-                let magnet = window.location.search.substring(8, window.location.search.length);
-                this.setState({
-                    expanded: true,
-                    expandedType: 1,
-                    addForm: {
-                        magnet: magnet
-                    }
-                })
-            }
+            // if (window.location.search && window.location.search.includes("?magnet=")) {
+            //     let magnet = window.location.search.substring(8, window.location.search.length);
+            //     this.setState({
+            //         defaultMagnet: magnet
+            //     })
+            // }
         })
-        // this.interval = setInterval(this.refreshStatus, 3000)
+        this.interval = setInterval(this.refreshStatus, 3000)
     }
 
     componentWillUnmount() {
@@ -139,9 +129,11 @@ export class WebTorrentGuiV2 extends Component {
 
     resumeAll = () => {
         try {
-            let {client, torrents} = this.state;
+            let {client, torrents, selectedTorrent} = this.state;
             torrents.forEach(x => {
-                client.addTorrent({magnet: x.magnet})
+                if (selectedTorrent == null || selectedTorrent.length < 1 || selectedTorrent.includes(x.infoHash)) {
+                    client.addTorrent({magnet: x.magnet})
+                }
             })
             this.refreshStatus().catch(console.error)
         } catch (e) {
@@ -150,9 +142,12 @@ export class WebTorrentGuiV2 extends Component {
     }
     pauseAll = () => {
         try {
-            let {client, torrents} = this.state;
+            let {client, torrents, selectedTorrent} = this.state;
+
             torrents.forEach(x => {
-                client.pauseTorrent({magnet: x.magnet})
+                if (selectedTorrent == null || selectedTorrent.length < 1 || selectedTorrent.includes(x.infoHash)) {
+                    client.pauseTorrent({magnet: x.magnet})
+                }
             })
             this.refreshStatus().catch(console.error)
         } catch (e) {
@@ -161,104 +156,19 @@ export class WebTorrentGuiV2 extends Component {
     }
 
 
-    renderAddForm = () => {
-        let {client, expanded, addForm, configuration} = this.state;
-        let {path, magnet} = addForm;
-        let {downloadPath} = configuration;
-        if (!path) {
-            path = downloadPath
-        }
-        return <Stack spacing={2}>
-            Download path<TextField
-            id={"path"}
-            type="text"
-            variant={"outlined"}
-            value={path}
-            onChange={(e) => this.setState(p => {
-                return {addForm: {...p.addForm, path: e.target.value}}
-            })}
-        /> <br/>
-            Magnet <TextField
-            id={"magnet"}
-            type="text"
-            variant={"outlined"}
-            value={magnet}
-            onChange={(e) => this.setState(p => {
-                return {addForm: {...p.addForm, magnet: e.target.value}}
-            })}
-        /><br/>
-            <Button startIcon={<Save/>} variant={"outlined"} onClick={() => {
-                client.addTorrent({magnet, path}).then(() => {
-                    this.refreshStatus().then(() => {
-                        this.setState({
-                            addForm: {path: downloadPath}
-                        })
-                    })
-                }).catch(console.error)
-                this.setState({expanded: !expanded})
-            }}>
-                Save and close
-            </Button>
-        </Stack>;
-    }
-
-    getConfigForm = () => {
-        let {client, expanded, configuration} = this.state;
-        let {downloadSpeed, downloadPath, uploadSpeed} = configuration;
-        return <Stack spacing={2}>
-
-            Download path<TextField
-            id={"downloadPath"}
-            type="text"
-            variant={"outlined"}
-            value={downloadPath}
-            onChange={(e) => this.setState(p => {
-                return {configuration: {...p.configuration, downloadPath: e.target.value}}
-            })}
-        /> <br/>
-            Download speed (Bytes/s -1 means unlimited) <TextField
-            id={"downloadSpeed"}
-            type="number"
-            variant={"outlined"}
-            value={downloadSpeed}
-            helperText={downloadSpeed == -1 ? "unlimited" : humanFileSize(downloadSpeed) + "/s"}
-            onChange={(e) => this.setState(p => {
-                return {configuration: {...p.configuration, downloadSpeed: e.target.value}}
-            })}
-        /><br/>
-            Upload speed (Bytes/s -1 means unlimited) <TextField
-            id={"uploadSpeed"}
-            type="number"
-            variant={"outlined"}
-            value={uploadSpeed}
-            helperText={uploadSpeed == -1 ? "unlimited" : humanFileSize(uploadSpeed) + "/s"}
-            onChange={(e) => this.setState(p => {
-                return {configuration: {...p.configuration, uploadSpeed: e.target.value}}
-            })}
-        /><br/>
-            <Button startIcon={<Save/>} variant={"outlined"} onClick={() => {
-                client.saveConf(configuration)
-                this.setState({expanded: !expanded})
-            }}>
-                Save and close
-            </Button>
-        </Stack>;
-    }
-
-    renderSwitch = () => {
-        let {expandedType} = this.state;
-        switch (expandedType) {
-            case 1:
-                return this.renderAddForm()
-            case 0:
-            default:
-                return this.getConfigForm()
-        }
-    }
-
     render() {
-        let {client, torrents, theme, expanded, configuration, localClient} = this.state;
-        let {actualDownload, actualUpload, actualRatio} = configuration;
+        let {
+            client,
+            torrents,
+            theme,
+            expanded,
+            configuration,
+            localClient,
+            selectedTorrent,
+            showAddTorrent,
+            showConfig
+        } = this.state;
+        let {downloadSpeed, downloadPath, uploadSpeed} = configuration;
         return (
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
@@ -268,19 +178,22 @@ export class WebTorrentGuiV2 extends Component {
                         direction={"row"}>
                         <Menu
                             onChange={this.darkLightMode}
+                            openSettings={this.openSettings}
                         />
                         <Divider orientation={"vertical"}/>
                         <Stack sx={{width: "100%"}} direction={"column"}>
                             <Stack sx={{width: "100%", padding: "5px"}} spacing={1} direction={"row"}>
                                 <Button size={"small"} color={"primary"} variant={"contained"}
-                                        startIcon={<AddCircle/>}>Add</Button>
+                                        startIcon={<AddCircle/>} onClick={() => {
+                                    this.setState({showAddTorrent: true})
+                                }}>Add</Button>
                                 <Button size={"small"} color={"primary"} variant={"contained"}
-                                        startIcon={<PauseCircle/>}>pause</Button>
+                                        startIcon={<PauseCircle/>} onClick={this.pauseAll}>pause</Button>
                                 <Button size={"small"} color={"primary"} variant={"contained"}
-                                        startIcon={<PlayCircle/>}>Resume</Button>
+                                        startIcon={<PlayCircle/>} onClick={this.resumeAll}>Resume</Button>
                                 <Divider orientation={"vertical"}/>
-                                <IconButton color={"primary"}><KeyboardArrowUp/></IconButton>
-                                <IconButton color={"primary"}><KeyboardArrowDown/></IconButton>
+                                <IconButton disabled color={"primary"}><KeyboardArrowUp/></IconButton>
+                                <IconButton disabled color={"primary"}><KeyboardArrowDown/></IconButton>
                                 <Divider orientation={"vertical"}/>
                                 <TextField size={"small"} variant={"outlined"} label={"Search"} InputProps={{
                                     startAdornment: (
@@ -296,7 +209,16 @@ export class WebTorrentGuiV2 extends Component {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell padding={"checkbox"}>
-                                                <Checkbox color={"primary"}/>
+                                                <Checkbox
+                                                    onClick={(event) => {
+                                                        if (event.target.checked) {
+                                                            this.setState({selectedTorrent: torrents.map(x => x.infoHash)})
+                                                        } else {
+                                                            this.setState({selectedTorrent: []})
+                                                        }
+                                                    }}
+                                                    checked={torrents.every(x => selectedTorrent.includes(x.infoHash))}
+                                                    color={"primary"}/>
                                             </TableCell>
                                             <TableCell>
                                                 <Typography variant={"subtitle2"}>
@@ -329,11 +251,11 @@ export class WebTorrentGuiV2 extends Component {
                                                 color = "warning";
                                             } else if (torrent.progress == 1) {
                                                 state = "completed";
-                                                color = "fine";
+                                                color = "success";
                                             } else if (torrent.timeRemaining > 0) {
                                                 state = toTime(torrent.timeRemaining)
                                             } else {
-                                                state = "undefined"
+                                                state = "--:--"
                                             }
                                             let size = 0;
                                             torrent.files.forEach(file => {
@@ -367,16 +289,37 @@ export class WebTorrentGuiV2 extends Component {
                                             </TableRow>)
                                         })
                                         }
-                                        <TableRow
-                                            key={1}
-                                        >
-
-                                        </TableRow>
                                     </TableBody>
                                 </Table>
                             </TableContainer>
                         </Stack>
                     </Stack>
+                    <AddTorrent
+                        open={showAddTorrent}
+                        onSubmit={(path, magnet) => {
+                            client.addTorrent({magnet, path})
+                                .then(this.refreshStatus)
+                                .catch(console.error)
+                            this.setState({showAddTorrent: false})
+                        }}
+                        onClose={() => {
+                            this.setState({showAddTorrent: false})
+                        }}
+                    />
+                    <ConfigDialog
+                        open={showConfig}
+                        key={"MODAL: " + downloadSpeed + downloadPath + uploadSpeed}
+                        onSubmit={(configuration) => {
+                            client.saveConf(configuration)
+                            this.setState({showConfig: false})
+                        }}
+                        onClose={() => {
+                            this.setState({showConfig: false})
+                        }}
+                        downloadPath={downloadPath}
+                        downloadSpeed={downloadSpeed}
+                        uploadSpeed={uploadSpeed}
+                    />
                 </Container>
             </ThemeProvider>
         );
@@ -402,6 +345,10 @@ export class WebTorrentGuiV2 extends Component {
     }
 
 
+    openSettings = () => {
+        console.log("CHECK SHOW CONFIG: ", true)
+        this.setState({showConfig: true})
+    }
     darkLightMode = (e, checked) => {
         let mode = checked ? "dark" : "light";
         this.setState({
