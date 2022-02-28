@@ -2,19 +2,15 @@ import React, {Component} from 'react';
 import {WebTorrentHelper} from "./WebTorrentHelper";
 import {
     Button,
+    Checkbox,
     Container,
     createTheme,
     CssBaseline,
     Divider,
     IconButton,
     InputAdornment,
-    List,
-    ListItem,
-    ListItemAvatar,
-    ListItemText,
     Paper,
     Stack,
-    Switch,
     Table,
     TableBody,
     TableCell,
@@ -27,25 +23,18 @@ import {
 } from "@mui/material";
 import {
     AddCircle,
-    DarkMode,
-    Download,
-    Home,
     KeyboardArrowDown,
     KeyboardArrowUp,
-    LibraryBooks,
-    LibraryMusic,
-    Movie,
     PauseCircle,
     PlayCircle,
     Save,
-    Search,
-    Settings,
-    Tv,
-    Upload
+    Search
 } from "@mui/icons-material";
-import {humanFileSize} from "./utils";
+import {humanFileSize, toTime} from "./utils";
 import WebTorrent from "webtorrent";
 import {LinearProgressWithLabel} from "./components/LinearProgressWithLabel";
+import * as PropTypes from "prop-types";
+import {Menu} from "./components/Menu";
 
 const defaultTheme = createTheme();
 const options = {
@@ -95,10 +84,13 @@ const options = {
     },
 };
 
+Menu.propTypes = {onChange: PropTypes.func};
+
 export class WebTorrentGuiV2 extends Component {
 
     state = {
         theme: createTheme(options),
+        selectedTorrent: [],
         torrents: [],
         addForm: {},
         expanded: false,
@@ -274,171 +266,9 @@ export class WebTorrentGuiV2 extends Component {
                     <Stack
                         sx={{height: "100%"}}
                         direction={"row"}>
-                        <Stack
-                            sx={{
-                                paddingLeft: "10px",
-                                paddingRight: "10px",
-                            }}
-                        >
-                            <Stack sx={{height: "100%"}} justifyContent={"space-between"}>
-                                <Stack>
-                                    <List dense={true}>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary="Overview"
-                                            />
-                                        </ListItem>
-                                        <ListItem
-                                            secondaryAction={
-                                                <Typography variant={"body2"}>0</Typography>
-                                            }
-                                            selected={true}
-                                        >
-                                            <ListItemAvatar>
-                                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                                    <Home/>
-                                                </Stack>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary="Home"
-                                            />
-                                        </ListItem>
-                                        <ListItem
-                                            secondaryAction={
-                                                <Typography variant={"body2"}>0</Typography>
-                                            }
-                                        >
-                                            <ListItemAvatar>
-                                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                                    <Download/>
-                                                </Stack>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary="Downloading"
-                                            />
-                                        </ListItem>
-                                        <ListItem
-                                            secondaryAction={
-                                                <Typography variant={"body2"}>0</Typography>
-                                            }
-                                        >
-                                            <ListItemAvatar>
-                                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                                    <Upload/>
-                                                </Stack>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary="Seeding"
-                                            />
-                                        </ListItem>
-                                    </List>
-                                    <Divider/>
-                                    <List dense={true}>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary="Explore"
-                                            />
-                                        </ListItem>
-                                        <ListItem
-                                            secondaryAction={
-                                                <Typography variant={"body2"}>0</Typography>
-                                            }
-                                        >
-                                            <ListItemAvatar>
-                                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                                    <Movie/>
-                                                </Stack>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary="Movies"
-                                            />
-                                        </ListItem>
-                                        <ListItem
-                                            secondaryAction={
-                                                <Typography variant={"body2"}>0</Typography>
-                                            }
-                                        >
-                                            <ListItemAvatar>
-                                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                                    <Tv/>
-                                                </Stack>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary="Series"
-                                            />
-                                        </ListItem>
-                                        <ListItem
-                                            secondaryAction={
-                                                <Typography variant={"body2"}>0</Typography>
-                                            }
-                                        >
-                                            <ListItemAvatar>
-                                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                                    <LibraryMusic/>
-                                                </Stack>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary="Music"
-                                            />
-                                        </ListItem>
-                                        <ListItem
-                                            secondaryAction={
-                                                <Typography variant={"body2"}>0</Typography>
-                                            }
-                                        >
-                                            <ListItemAvatar>
-                                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                                    <LibraryBooks/>
-                                                </Stack>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary="Book"
-                                            />
-                                        </ListItem>
-                                    </List>
-                                    <Divider/>
-                                </Stack>
-                                <Stack>
-                                    <ListItem>
-                                        <ListItemText
-                                            primary="Configuration"
-                                        />
-                                    </ListItem>
-                                    <ListItem>
-                                        <ListItemAvatar>
-                                            <Stack alignItems={"center"} justifyContent={"center"}>
-                                                <Settings/>
-                                            </Stack>
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary="Settings"
-                                        />
-                                    </ListItem>
-                                    <ListItem>
-                                        <ListItemAvatar>
-                                            <Stack alignItems={"center"} justifyContent={"center"}>
-                                                <DarkMode/>
-                                            </Stack>
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary="Dark theme"
-                                        />
-                                        <Switch defaultChecked={true} onChange={(e, checked) => {
-                                            let mode = checked ? "dark" : "light";
-                                            this.setState({
-                                                theme: createTheme({
-                                                    ...options,
-                                                    palette: {
-                                                        ...options.palette,
-                                                        mode: mode
-                                                    }
-                                                })
-                                            })
-                                        }}/>
-                                    </ListItem>
-                                </Stack>
-                            </Stack>
-                        </Stack>
+                        <Menu
+                            onChange={this.darkLightMode}
+                        />
                         <Divider orientation={"vertical"}/>
                         <Stack sx={{width: "100%"}} direction={"column"}>
                             <Stack sx={{width: "100%", padding: "5px"}} spacing={1} direction={"row"}>
@@ -462,27 +292,85 @@ export class WebTorrentGuiV2 extends Component {
                             </Stack>
                             <Divider/>
                             <TableContainer component={Paper}>
-                                <Table sx={{minWidth: 650}} size="small" aria-label="a dense table">
+                                <Table sx={{minWidth: 650}} size="small">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Name</TableCell>
-                                            <TableCell align="right">Progress</TableCell>
-                                            <TableCell align="right">Time left</TableCell>
-                                            <TableCell align="right">Size</TableCell>
+                                            <TableCell padding={"checkbox"}>
+                                                <Checkbox color={"primary"}/>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant={"subtitle2"}>
+                                                    Name
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant={"subtitle2"}>
+                                                    Progress
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant={"subtitle2"}>
+                                                    Time left
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant={"subtitle2"}>
+                                                    Size
+                                                </Typography>
+                                            </TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
+                                        {torrents && torrents.map(torrent => {
+                                            let state;
+                                            let color = "primary";
+                                            if (torrent.paused) {
+                                                state = "paused";
+                                                color = "warning";
+                                            } else if (torrent.progress == 1) {
+                                                state = "completed";
+                                                color = "fine";
+                                            } else if (torrent.timeRemaining > 0) {
+                                                state = toTime(torrent.timeRemaining)
+                                            } else {
+                                                state = "undefined"
+                                            }
+                                            let size = 0;
+                                            torrent.files.forEach(file => {
+                                                size = size + file.length
+                                            })
+                                            return (<TableRow key={torrent.infoHash}
+                                                              onClick={() => this.onChangeRowSelection(torrent.infoHash)}>
+                                                <TableCell padding={"checkbox"} component="th" scope="row">
+                                                    <Checkbox
+                                                        color="primary"
+                                                        checked={this.isRowSelected(torrent.infoHash)}
+                                                    />
+                                                </TableCell>
+                                                <TableCell padding={"checkbox"} component="th" scope="row">
+                                                    <Typography variant={"body2"}>{torrent.name}</Typography>
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    <LinearProgressWithLabel color={color}
+                                                                             value={torrent.progress * 100}/>
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    <Typography variant={"body2"}>
+                                                        {state}
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    <Typography variant={"body2"}>
+                                                        {humanFileSize(size)}
+                                                    </Typography>
+                                                </TableCell>
+                                            </TableRow>)
+                                        })
+                                        }
                                         <TableRow
                                             key={1}
                                         >
-                                            <TableCell component="th" scope="row">
-                                                <Typography variant={"body2"}>The WIRED CD</Typography>
-                                            </TableCell>
-                                            <TableCell align="right"><LinearProgressWithLabel value={50}/></TableCell>
-                                            <TableCell align="right"><Typography
-                                                variant={"body2"}>15m</Typography></TableCell>
-                                            <TableCell align="right"><Typography
-                                                variant={"body2"}>400M</Typography></TableCell>
+
                                         </TableRow>
                                     </TableBody>
                                 </Table>
@@ -495,4 +383,35 @@ export class WebTorrentGuiV2 extends Component {
     }
 
 
+    isRowSelected = (infoHash) => {
+        let {selectedTorrent} = this.state;
+        return selectedTorrent.includes(infoHash);
+    }
+    onChangeRowSelection = (infoHash) => {
+        let {selectedTorrent} = this.state;
+        if (this.isRowSelected(infoHash)) {
+            this.setState({
+                selectedTorrent: selectedTorrent.filter(x => x != infoHash)
+            })
+        } else {
+            selectedTorrent.push(infoHash)
+            this.setState({
+                selectedTorrent
+            })
+        }
+    }
+
+
+    darkLightMode = (e, checked) => {
+        let mode = checked ? "dark" : "light";
+        this.setState({
+            theme: createTheme({
+                ...options,
+                palette: {
+                    ...options.palette,
+                    mode: mode
+                }
+            })
+        })
+    }
 }
