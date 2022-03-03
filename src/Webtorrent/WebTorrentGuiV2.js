@@ -9,26 +9,32 @@ import {
     Divider,
     IconButton,
     InputAdornment,
-    Paper,
     Stack,
-    Table,
-    TableBody,
     TableCell,
-    TableContainer,
-    TableHead,
     TableRow,
     TextField,
     ThemeProvider,
     Typography
 } from "@mui/material";
-import {AddCircle, KeyboardArrowDown, KeyboardArrowUp, PauseCircle, PlayCircle, Search} from "@mui/icons-material";
+import {
+    AddCircle,
+    Download,
+    KeyboardArrowDown,
+    KeyboardArrowUp,
+    PauseCircle,
+    PlayCircle,
+    Search,
+    Upload
+} from "@mui/icons-material";
 import {humanFileSize, toTime} from "./utils";
 import WebTorrent from "webtorrent";
 import {LinearProgressWithLabel} from "./components/LinearProgressWithLabel";
-import * as PropTypes from "prop-types";
+
 import {Menu} from "./components/Menu";
 import AddTorrent from "./components/AddTorrent";
 import ConfigDialog from "./components/ConfigDialog";
+import TorrentClientTable from "./components/TorrentClientTable";
+import FilesTable from "./components/FilesTable";
 
 const defaultTheme = createTheme();
 const options = {
@@ -46,7 +52,7 @@ const options = {
                 }
             }
         },
-        MuiListItem: {
+        MuiListItemButton: {
             styleOverrides: {
                 root: {
                     borderRadius: "20px",
@@ -78,16 +84,19 @@ const options = {
     },
 };
 
-Menu.propTypes = {onChange: PropTypes.func};
-
 export class WebTorrentGuiV2 extends Component {
 
     state = {
         theme: createTheme(options),
         selectedTorrent: [],
         torrents: [],
+        filterTorrent: (x) => {
+            return true
+        },
         showAddTorrent: false,
         showConfig: false,
+        showMovies: false,
+        showTorrentClient: true,
         localClient: new WebTorrent({destroyStoreOnDestroy: false}),
         configuration: {}
 
@@ -113,14 +122,21 @@ export class WebTorrentGuiV2 extends Component {
 
     refreshStatus = async () => {
         try {
-            let {client, expanded} = this.state
+            let {client, localClient, filterTorrent} = this.state
             let res = await client.checkStatus();
-            if (!expanded) {
-                let confRes = await client.getConf();
-                this.setState({torrents: res.data, configuration: confRes.data})
-            } else {
-                this.setState({torrents: res.data})
-            }
+            let confRes = await client.getConf();
+            this.setState({torrents: res.data.filter(filterTorrent), configuration: confRes.data})
+            res.data.forEach((torrent) => {
+                if (localClient.get(torrent.magnet) == null) {
+                    localClient.add(torrent.magnet, null, (addedTorrent) => {
+                        console.log("CHECK TORRENT added: ", addedTorrent)
+                        addedTorrent.on("ready", () => {
+                            console.log("CHECK TORRENT ready: ", addedTorrent)
+                            addedTorrent.pause()
+                        });
+                    })
+                }
+            })
         } catch (e) {
             console.error(e)
         }
@@ -166,9 +182,10 @@ export class WebTorrentGuiV2 extends Component {
             localClient,
             selectedTorrent,
             showAddTorrent,
-            showConfig
+            showConfig,
+            showTorrentClient, showMovies
         } = this.state;
-        let {downloadSpeed, downloadPath, uploadSpeed} = configuration;
+        let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
         return (
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
@@ -179,6 +196,39 @@ export class WebTorrentGuiV2 extends Component {
                         <Menu
                             onChange={this.darkLightMode}
                             openSettings={this.openSettings}
+                            filterDownload={() => {
+                                this.setState({
+                                    showTorrentClient: true,
+                                    showMovies: false,
+                                    filterTorrent: (x) => {
+                                        return x.paused = false && x.progress != 1;
+                                    }
+                                }, this.refreshStatus)
+                            }}
+                            filterSeeding={() => {
+                                this.setState({
+                                    showTorrentClient: true,
+                                    showMovies: false,
+                                    filterTorrent: (x) => {
+                                        return x.paused == false && x.progress >= 1;
+                                    }
+                                }, this.refreshStatus)
+                            }}
+                            filterHome={() => {
+                                this.setState({
+                                    showTorrentClient: true,
+                                    showMovies: false,
+                                    filterTorrent: (x) => {
+                                        return true;
+                                    }
+                                }, this.refreshStatus)
+                            }}
+                            switchMovies={() => {
+                                this.setState({
+                                    showMovies: true,
+                                    showTorrentClient: false
+                                })
+                            }}
                         />
                         <Divider orientation={"vertical"}/>
                         <Stack sx={{width: "100%"}} direction={"column"}>
@@ -195,103 +245,82 @@ export class WebTorrentGuiV2 extends Component {
                                 <IconButton disabled color={"primary"}><KeyboardArrowUp/></IconButton>
                                 <IconButton disabled color={"primary"}><KeyboardArrowDown/></IconButton>
                                 <Divider orientation={"vertical"}/>
-                                <TextField size={"small"} variant={"outlined"} label={"Search"} InputProps={{
+                                <TextField size={"small"} variant={"outlined"} disabled label={"Search"} InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
                                             <Search/>
                                         </InputAdornment>
                                     )
                                 }}/>
+                                <Typography
+                                    sx={{display: "flex", alignItems: "center"}}
+                                    variant="body2"
+                                >
+                                    <Download
+                                        fontSize="small"/>{humanFileSize(actualDownload) + "/s"} {humanFileSize(actualUpload) + "/s"}<Upload
+                                    fontSize="small"/><br/>
+                                </Typography>
                             </Stack>
                             <Divider/>
-                            <TableContainer component={Paper}>
-                                <Table sx={{minWidth: 650}} size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell padding={"checkbox"}>
-                                                <Checkbox
-                                                    onClick={(event) => {
-                                                        if (event.target.checked) {
-                                                            this.setState({selectedTorrent: torrents.map(x => x.infoHash)})
-                                                        } else {
-                                                            this.setState({selectedTorrent: []})
-                                                        }
-                                                    }}
-                                                    checked={torrents.every(x => selectedTorrent.includes(x.infoHash))}
-                                                    color={"primary"}/>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Typography variant={"subtitle2"}>
-                                                    Name
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <Typography variant={"subtitle2"}>
-                                                    Progress
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <Typography variant={"subtitle2"}>
-                                                    Time left
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <Typography variant={"subtitle2"}>
-                                                    Size
-                                                </Typography>
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {torrents && torrents.map(torrent => {
-                                            let state;
-                                            let color = "primary";
-                                            if (torrent.paused) {
-                                                state = "paused";
-                                                color = "warning";
-                                            } else if (torrent.progress == 1) {
-                                                state = "completed";
-                                                color = "success";
-                                            } else if (torrent.timeRemaining > 0) {
-                                                state = toTime(torrent.timeRemaining)
-                                            } else {
-                                                state = "--:--"
-                                            }
-                                            let size = 0;
-                                            torrent.files.forEach(file => {
-                                                size = size + file.length
-                                            })
-                                            return (<TableRow key={torrent.infoHash}
-                                                              onClick={() => this.onChangeRowSelection(torrent.infoHash)}>
-                                                <TableCell padding={"checkbox"} component="th" scope="row">
-                                                    <Checkbox
-                                                        color="primary"
-                                                        checked={this.isRowSelected(torrent.infoHash)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell padding={"checkbox"} component="th" scope="row">
-                                                    <Typography variant={"body2"}>{torrent.name}</Typography>
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <LinearProgressWithLabel color={color}
-                                                                             value={torrent.progress * 100}/>
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <Typography variant={"body2"}>
-                                                        {state}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <Typography variant={"body2"}>
-                                                        {humanFileSize(size)}
-                                                    </Typography>
-                                                </TableCell>
-                                            </TableRow>)
-                                        })
-                                        }
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                            {showMovies && <FilesTable
+                                client={client}
+                                localClient={localClient}
+                            />}
+                            {showTorrentClient && <TorrentClientTable
+                                onClick={(event) => {
+                                    if (event.target.checked) {
+                                        this.setState({selectedTorrent: torrents.map(x => x.infoHash)})
+                                    } else {
+                                        this.setState({selectedTorrent: []})
+                                    }
+                                }}
+                                torrents={torrents}
+                                predicate={x => selectedTorrent.includes(x.infoHash)}
+                                callbackfn={torrent => {
+                                    let state;
+                                    let color = "primary";
+                                    if (torrent.paused) {
+                                        state = "paused";
+                                        color = "warning";
+                                    } else if (torrent.progress == 1) {
+                                        state = "completed";
+                                        color = "success";
+                                    } else if (torrent.timeRemaining > 0) {
+                                        state = toTime(torrent.timeRemaining)
+                                    } else {
+                                        state = "--:--"
+                                    }
+                                    let size = 0;
+                                    torrent.files.forEach(file => {
+                                        size = size + file.length
+                                    })
+                                    return (<TableRow key={torrent.infoHash}
+                                                      onClick={() => this.onChangeRowSelection(torrent.infoHash)}>
+                                        <TableCell padding={"checkbox"} component="th" scope="row">
+                                            <Checkbox
+                                                color="primary"
+                                                checked={this.isRowSelected(torrent.infoHash)}
+                                            />
+                                        </TableCell>
+                                        <TableCell padding={"checkbox"} component="th" scope="row">
+                                            <Typography variant={"body2"}>{torrent.name}</Typography>
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            <LinearProgressWithLabel color={color}
+                                                                     value={torrent.progress * 100}/>
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            <Typography variant={"body2"}>
+                                                {state}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            <Typography variant={"body2"}>
+                                                {humanFileSize(size)}
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>)
+                                }}/>}
                         </Stack>
                     </Stack>
                     <AddTorrent

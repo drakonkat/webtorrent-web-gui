@@ -88,4 +88,31 @@ export class WebTorrentHelper {
         });
     }
 
+    listFiles = () => {
+        return this.axios({
+            method: "get",
+            url: "/file/list",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+    fileOpen = (id) => {
+        return this.axios({
+            method: "get",
+            url: "/file/open?fileid=" + id,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+    fileStream = (id) => {
+        return this.axios({
+            method: "get",
+            url: "/file/stream?fileid=" + id,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 }

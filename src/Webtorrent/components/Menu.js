@@ -7,12 +7,14 @@ import {
     ListItemText,
     Stack,
     Switch,
+    Tooltip,
     Typography
 } from "@mui/material";
 import {DarkMode, Download, Home, LibraryBooks, LibraryMusic, Movie, Settings, Tv, Upload} from "@mui/icons-material";
-import React from "react";
+import React, {useState} from "react";
 
 export function Menu(props) {
+    let [selected, setSelected] = useState("overview");
     return <Stack
         sx={{
             paddingLeft: "10px",
@@ -27,11 +29,15 @@ export function Menu(props) {
                             primary="Overview"
                         />
                     </ListItem>
-                    <ListItem
+                    <ListItemButton
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
-                        selected={true}
+                        selected={selected == "overview"}
+                        onClick={() => {
+                            setSelected("overview")
+                            props.filterHome()
+                        }}
                     >
                         <ListItemAvatar>
                             <Stack alignItems={"center"} justifyContent={"center"}>
@@ -41,9 +47,13 @@ export function Menu(props) {
                         <ListItemText
                             primary="Home"
                         />
-                    </ListItem>
+                    </ListItemButton>
                     <ListItemButton
-                        disabled
+                        selected={selected == "downloading"}
+                        onClick={() => {
+                            setSelected("downloading")
+                            props.filterDownload()
+                        }}
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -58,7 +68,11 @@ export function Menu(props) {
                         />
                     </ListItemButton>
                     <ListItemButton
-                        disabled
+                        selected={selected == "seeding"}
+                        onClick={() => {
+                            setSelected("seeding")
+                            props.filterSeeding()
+                        }}
                         secondaryAction={
                             <Typography variant={"body2"}>0</Typography>
                         }
@@ -80,21 +94,27 @@ export function Menu(props) {
                             primary="Explore (Coming soon)"
                         />
                     </ListItem>
-                    <ListItemButton
-                        disabled
-                        secondaryAction={
-                            <Typography variant={"body2"}>0</Typography>
-                        }
-                    >
-                        <ListItemAvatar>
-                            <Stack alignItems={"center"} justifyContent={"center"}>
-                                <Movie/>
-                            </Stack>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="Movies"
-                        />
-                    </ListItemButton>
+                    <Tooltip title={"Here you can see streamable media from your library"}>
+                        <ListItemButton
+                            onClick={() => {
+                                setSelected("movies")
+                                props.switchMovies()
+                            }}
+                            selected={selected == "movies"}
+                            secondaryAction={
+                                <Typography variant={"body2"}>0</Typography>
+                            }
+                        >
+                            <ListItemAvatar>
+                                <Stack alignItems={"center"} justifyContent={"center"}>
+                                    <Movie/>
+                                </Stack>
+                            </ListItemAvatar>
+                            <ListItemText
+                                primary="Files"
+                            />
+                        </ListItemButton>
+                    </Tooltip>
                     <ListItemButton
                         disabled
                         secondaryAction={
