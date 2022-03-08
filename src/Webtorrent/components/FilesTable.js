@@ -1,113 +1,121 @@
 import React, {Component} from "react";
-import {Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography} from "@mui/material";
-import WatchTorrent from "./WatchTorrent";
-import {PlayCircleFilled} from "@mui/icons-material";
+import {IconButton, LinearProgress, Stack, Tooltip, Typography} from "@mui/material";
+import {Attachment, CloudDownload, Download, Upload} from "@mui/icons-material";
+import {humanFileSize} from "../utils";
 
 class FilesTable extends Component {
     state = {
-        files: [],
-        showWatchDialog: false,
-        file: null
+        loading: true,
+        files: []
     }
 
     componentDidMount() {
-        this.refreshStatus();
-        this.interval = setInterval(this.refreshStatus, 10000)
+        let search = this.props
+        this.refreshStatus(search);
     }
 
-    componentWillUnmount() {
-        clearInterval(this.interval)
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.search !== this.props.search) {
+            if (this.timeoutId) {
+                clearTimeout(this.timeoutId)
+            }
+            this.timeoutId = setTimeout(this.refreshStatus, 1000);
+        }
     }
 
     refreshStatus = async () => {
         try {
-            let {client, localClient} = this.props
-            let res = await client.listFiles();
-            this.setState({files: res.data})
+            let {client, search, torrents, navigateBack} = this.props
+            this.setState({loading: true})
+            let res = await client.search(search);
+            this.setState({
+                files: res.data.map(file => {
+                    let disabled = torrents.some(t => {
+                        return t.name.includes(file.title)
+                    })
+                    return (<Stack
+                        alignItems={"center"}
+                        justifyContent={"center"}
+                        direction={"row"}
+                        spacing={0}
+                        sx={{
+                            borderRadius: "10px",
+                            padding: "10px",
+                            backgroundColor: "background.default",
+                            width: "100%"
+                        }}
+                        key={file.url}>
+                        <Stack
+                            spacing={0}
+                            sx={{
+                                width: "100%"
+                            }}
+                            alignItems={"flex-start"}
+                            justifyContent={"flex-start"}
+                        >
+                            <Typography variant={"body1"}>{file.title}</Typography>
+                            <Stack
+                                direction={"row"}
+                                alignItems={"center"}
+                                justifyContent={"flex-start"}
+                            >
+                                <Upload color={"success"} fontSize={"small"}/>
+                                <Typography variant={"body1"}>Seed: {file.seed}</Typography>
+                                <Download color={"success"} fontSize={"small"}/>
+                                <Typography variant={"body1"}>Leech: {file.leech}</Typography>
+                            </Stack>
+                            <Stack
+                                direction={"row"}
+                                alignItems={"center"}
+                                justifyContent={"flex-start"}
+                            >
+                                <Attachment color={"success"} fontSize={"small"}/>
+                                <Typography variant={"body1"}>{humanFileSize(file.filesize)}</Typography>
+                            </Stack>
+                        </Stack>
+                        <Tooltip title={file.title}>
+                            <IconButton
+                                disabled={disabled}
+                                size={"medium"}
+                                onClick={() => {
+                                    client.addTorrent({magnet: file.magnetlink})
+                                    navigateBack();
+                                }}
+                            >
+                                <CloudDownload fontSize={"large"} color={disabled ? "disabled" : "success"}/>
+                            </IconButton>
+                        </Tooltip>
+                    </Stack>)
+                }), loading: false
+            })
         } catch (e) {
             console.error(e)
+        } finally {
+            if (this.state.loading) {
+                this.setState({loading: false})
+            }
         }
 
     }
 
     render() {
-        let {client, localClient} = this.props
-        let {files, showWatchDialog, file} = this.state
-        return <TableContainer component={Paper}>
-            <Table sx={{minWidth: 650}} size="small">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>
-                            <Typography variant={"subtitle2"}>
-                                Name
-                            </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                            <Typography variant={"subtitle2"}>
-                                Streamable
-                            </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                            <Typography variant={"subtitle2"}>
-                                Downloaded
-                            </Typography>
-                        </TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {files && files.map(file => {
-                        let canBeStreamed = file.streamable && file.done;
-                        let onClick = () => {
-                            client.fileOpen(file.id);
-                        };
-                        if (canBeStreamed) {
-                            onClick = () => {
-                                client.fileOpen(file.id);
-                                //TODO Stream locally
-                                // this.setState({showWatchDialog: true, file: file})
-                            }
-                        }
-                        return (<TableRow key={file.id}
-                                          onClick={onClick}>
-                            <TableCell component="th" scope="row">
-                                <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                    <PlayCircleFilled/>
-                                    <Typography variant={"body2"}>{file.name}</Typography>
-                                </Box>
-                            </TableCell>
-                            <TableCell align="right">
-                                <Typography variant={"body2"}>{file.streamable ? "true" : false}</Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                                <Typography variant={"body2"}>
-                                    {file.done ? "true" : "false"}
-                                </Typography>
-                            </TableCell>
-                        </TableRow>)
-                    })}
-                </TableBody>
-            </Table>
-            <WatchTorrent
-                open={showWatchDialog}
-                onClose={() => {
-                    this.setState({showWatchDialog: false, file: null})
-                }}
-                localClient={localClient}
-                file={file}
-            />
-        </TableContainer>;
+        let {files, loading} = this.state
+        return <Stack sx={{padding: "10px", backgroundColor: "background.paper", height: "100%", overflow: "auto"}}
+                      spacing={2}>
+            {loading && <LinearProgress variant={"indeterminate"} color={"success"}/>}
+            {!loading && files}
+        </Stack>;
     }
 }
 
 FilesTable.defaultProps = {
-    onClick: () => {
+    navigateBack: () => {
+        console.log("NOT IMPLEMENTED navigateBack")
     },
     torrents: [],
-    predicate: () => {
-    },
-    callbackfn: () => {
-
-    }
+    client: {},
+    localClient: {},
+    search: null
 };
 
 export default FilesTable

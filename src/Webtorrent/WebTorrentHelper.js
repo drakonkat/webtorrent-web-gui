@@ -115,4 +115,17 @@ export class WebTorrentHelper {
             }
         });
     }
+
+    search = (q) => {
+        if (!q) {
+            q = "2022";
+        }
+        return this.axios({
+            method: "get",
+            url: "/file/search?q=" + q,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 }

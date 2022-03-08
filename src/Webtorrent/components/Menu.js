@@ -7,14 +7,13 @@ import {
     ListItemText,
     Stack,
     Switch,
-    Tooltip,
-    Typography
+    Tooltip
 } from "@mui/material";
 import {DarkMode, Download, Home, LibraryBooks, LibraryMusic, Movie, Settings, Tv, Upload} from "@mui/icons-material";
-import React, {useState} from "react";
+import React from "react";
 
 export function Menu(props) {
-    let [selected, setSelected] = useState("overview");
+    let {selected} = props;
     return <Stack
         sx={{
             paddingLeft: "10px",
@@ -30,12 +29,9 @@ export function Menu(props) {
                         />
                     </ListItem>
                     <ListItemButton
-                        secondaryAction={
-                            <Typography variant={"body2"}>0</Typography>
-                        }
+
                         selected={selected == "overview"}
                         onClick={() => {
-                            setSelected("overview")
                             props.filterHome()
                         }}
                     >
@@ -51,12 +47,9 @@ export function Menu(props) {
                     <ListItemButton
                         selected={selected == "downloading"}
                         onClick={() => {
-                            setSelected("downloading")
                             props.filterDownload()
                         }}
-                        secondaryAction={
-                            <Typography variant={"body2"}>0</Typography>
-                        }
+
                     >
                         <ListItemAvatar>
                             <Stack alignItems={"center"} justifyContent={"center"}>
@@ -70,12 +63,9 @@ export function Menu(props) {
                     <ListItemButton
                         selected={selected == "seeding"}
                         onClick={() => {
-                            setSelected("seeding")
                             props.filterSeeding()
                         }}
-                        secondaryAction={
-                            <Typography variant={"body2"}>0</Typography>
-                        }
+
                     >
                         <ListItemAvatar>
                             <Stack alignItems={"center"} justifyContent={"center"}>
@@ -94,16 +84,12 @@ export function Menu(props) {
                             primary="Explore (Coming soon)"
                         />
                     </ListItem>
-                    <Tooltip title={"Here you can see streamable media from your library"}>
+                    <Tooltip title={"Explore a list of movies"}>
                         <ListItemButton
                             onClick={() => {
-                                setSelected("movies")
                                 props.switchMovies()
                             }}
                             selected={selected == "movies"}
-                            secondaryAction={
-                                <Typography variant={"body2"}>0</Typography>
-                            }
                         >
                             <ListItemAvatar>
                                 <Stack alignItems={"center"} justifyContent={"center"}>
@@ -111,15 +97,13 @@ export function Menu(props) {
                                 </Stack>
                             </ListItemAvatar>
                             <ListItemText
-                                primary="Files"
+                                primary="Movies"
                             />
                         </ListItemButton>
                     </Tooltip>
                     <ListItemButton
                         disabled
-                        secondaryAction={
-                            <Typography variant={"body2"}>0</Typography>
-                        }
+
                     >
                         <ListItemAvatar>
                             <Stack alignItems={"center"} justifyContent={"center"}>
@@ -132,9 +116,7 @@ export function Menu(props) {
                     </ListItemButton>
                     <ListItemButton
                         disabled
-                        secondaryAction={
-                            <Typography variant={"body2"}>0</Typography>
-                        }
+
                     >
                         <ListItemAvatar>
                             <Stack alignItems={"center"} justifyContent={"center"}>
@@ -147,9 +129,7 @@ export function Menu(props) {
                     </ListItemButton>
                     <ListItemButton
                         disabled
-                        secondaryAction={
-                            <Typography variant={"body2"}>0</Typography>
-                        }
+
                     >
                         <ListItemAvatar>
                             <Stack alignItems={"center"} justifyContent={"center"}>

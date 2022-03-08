@@ -13,7 +13,7 @@ import {
 
 class TorrentClientTable extends Component {
     render() {
-        let {onClick, torrents, predicate, callbackfn} = this.props
+        let {onClick, torrents, predicate, callbackfn, search} = this.props
         return <TableContainer component={Paper}>
             <Table sx={{minWidth: 650}} size="small">
                 <TableHead>
@@ -47,7 +47,7 @@ class TorrentClientTable extends Component {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {torrents && torrents.map(callbackfn)}
+                    {torrents && torrents.filter(x => x.name.includes(search)).map(callbackfn)}
                 </TableBody>
             </Table>
         </TableContainer>;

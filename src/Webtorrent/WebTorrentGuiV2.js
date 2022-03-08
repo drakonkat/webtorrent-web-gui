@@ -3,6 +3,7 @@ import {WebTorrentHelper} from "./WebTorrentHelper";
 import {
     Button,
     Checkbox,
+    Collapse,
     Container,
     createTheme,
     CssBaseline,
@@ -14,10 +15,13 @@ import {
     TableRow,
     TextField,
     ThemeProvider,
+    Tooltip,
     Typography
 } from "@mui/material";
 import {
     AddCircle,
+    Delete,
+    DeleteForever,
     Download,
     KeyboardArrowDown,
     KeyboardArrowUp,
@@ -35,6 +39,8 @@ import AddTorrent from "./components/AddTorrent";
 import ConfigDialog from "./components/ConfigDialog";
 import TorrentClientTable from "./components/TorrentClientTable";
 import FilesTable from "./components/FilesTable";
+import {grey} from "@mui/material/colors";
+import FileElement from "./components/FileElement";
 
 const defaultTheme = createTheme();
 const options = {
@@ -42,7 +48,11 @@ const options = {
         fontSize: 12,
     },
     palette: {
-        mode: 'dark'
+        mode: 'dark',
+        background: {
+            default: "#303030",
+            paper: "#424242"
+        }
     },
     components: {
         MuiLinearProgress: {
@@ -77,6 +87,7 @@ const options = {
                     [defaultTheme.breakpoints.up('xs')]: {
                         paddingLeft: "0px",
                         paddingRight: "0px",
+                        paddingTop: "5px",
                     }
                 },
             },
@@ -98,7 +109,9 @@ export class WebTorrentGuiV2 extends Component {
         showMovies: false,
         showTorrentClient: true,
         localClient: new WebTorrent({destroyStoreOnDestroy: false}),
-        configuration: {}
+        configuration: {},
+        search: "",
+        selected: "overview"
 
     }
 
@@ -143,6 +156,34 @@ export class WebTorrentGuiV2 extends Component {
 
     }
 
+    removeAll = () => {
+        try {
+            let {client, torrents, selectedTorrent} = this.state;
+            torrents.forEach(x => {
+                if (selectedTorrent == null || selectedTorrent.length < 1 || selectedTorrent.includes(x.infoHash)) {
+                    client.removeTorrent({magnet: x.magnet})
+                }
+            })
+            this.refreshStatus().catch(console.error)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    destroyAll = () => {
+        try {
+            let {client, torrents, selectedTorrent} = this.state;
+            torrents.forEach(x => {
+                if (selectedTorrent == null || selectedTorrent.length < 1 || selectedTorrent.includes(x.infoHash)) {
+                    client.destroyTorrent({magnet: x.magnet})
+                }
+            })
+            this.refreshStatus().catch(console.error)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
     resumeAll = () => {
         try {
             let {client, torrents, selectedTorrent} = this.state;
@@ -177,23 +218,26 @@ export class WebTorrentGuiV2 extends Component {
             client,
             torrents,
             theme,
-            expanded,
             configuration,
             localClient,
             selectedTorrent,
             showAddTorrent,
             showConfig,
-            showTorrentClient, showMovies
+            showTorrentClient,
+            showMovies,
+            search,
+            selected
         } = this.state;
         let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
         return (
             <ThemeProvider theme={theme}>
-                <CssBaseline/>
+                <CssBaseline enableColorScheme/>
                 <Container maxWidth="false">
                     <Stack
                         sx={{height: "100%"}}
                         direction={"row"}>
                         <Menu
+                            selected={selected}
                             onChange={this.darkLightMode}
                             openSettings={this.openSettings}
                             filterDownload={() => {
@@ -201,8 +245,9 @@ export class WebTorrentGuiV2 extends Component {
                                     showTorrentClient: true,
                                     showMovies: false,
                                     filterTorrent: (x) => {
-                                        return x.paused = false && x.progress != 1;
-                                    }
+                                        return x.paused == false && x.progress != 1;
+                                    },
+                                    selected: "downloading"
                                 }, this.refreshStatus)
                             }}
                             filterSeeding={() => {
@@ -211,7 +256,8 @@ export class WebTorrentGuiV2 extends Component {
                                     showMovies: false,
                                     filterTorrent: (x) => {
                                         return x.paused == false && x.progress >= 1;
-                                    }
+                                    },
+                                    selected: "seeding"
                                 }, this.refreshStatus)
                             }}
                             filterHome={() => {
@@ -220,19 +266,22 @@ export class WebTorrentGuiV2 extends Component {
                                     showMovies: false,
                                     filterTorrent: (x) => {
                                         return true;
-                                    }
+                                    },
+                                    selected: "overview"
                                 }, this.refreshStatus)
                             }}
                             switchMovies={() => {
                                 this.setState({
                                     showMovies: true,
-                                    showTorrentClient: false
+                                    showTorrentClient: false,
+                                    selected: "movies"
                                 })
                             }}
                         />
                         <Divider orientation={"vertical"}/>
                         <Stack sx={{width: "100%"}} direction={"column"}>
-                            <Stack sx={{width: "100%", padding: "5px"}} spacing={1} direction={"row"}>
+                            <Stack sx={{width: "100%", padding: "5px"}} alignItems={"center"} spacing={1}
+                                   direction={"row"}>
                                 <Button size={"small"} color={"primary"} variant={"contained"}
                                         startIcon={<AddCircle/>} onClick={() => {
                                     this.setState({showAddTorrent: true})
@@ -241,17 +290,32 @@ export class WebTorrentGuiV2 extends Component {
                                         startIcon={<PauseCircle/>} onClick={this.pauseAll}>pause</Button>
                                 <Button size={"small"} color={"primary"} variant={"contained"}
                                         startIcon={<PlayCircle/>} onClick={this.resumeAll}>Resume</Button>
+                                <Tooltip title={"Remove element only from the list"}>
+                                    <Button size={"small"} color={"primary"} variant={"contained"}
+                                            startIcon={<Delete/>} onClick={this.removeAll}>Remove</Button>
+                                </Tooltip>
+                                <Tooltip title={"Remove element from list and from the memory"}>
+                                    <Button size={"small"} color={"primary"} variant={"contained"}
+                                            startIcon={<DeleteForever/>} onClick={this.destroyAll}>Delete</Button>
+                                </Tooltip>
                                 <Divider orientation={"vertical"}/>
                                 <IconButton disabled color={"primary"}><KeyboardArrowUp/></IconButton>
                                 <IconButton disabled color={"primary"}><KeyboardArrowDown/></IconButton>
                                 <Divider orientation={"vertical"}/>
-                                <TextField size={"small"} variant={"outlined"} disabled label={"Search"} InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <Search/>
-                                        </InputAdornment>
-                                    )
-                                }}/>
+                                <TextField size={"small"} variant={"outlined"} label={"Search"}
+                                           InputProps={{
+                                               startAdornment: (
+                                                   <InputAdornment position="start">
+                                                       <Search/>
+                                                   </InputAdornment>
+                                               )
+                                           }}
+                                           value={search}
+                                           onChange={(e) => {
+                                               let text = e.target.value;
+                                               this.setState({search: text})
+                                           }}
+                                />
                                 <Typography
                                     sx={{display: "flex", alignItems: "center"}}
                                     variant="body2"
@@ -264,9 +328,22 @@ export class WebTorrentGuiV2 extends Component {
                             <Divider/>
                             {showMovies && <FilesTable
                                 client={client}
+                                torrents={torrents}
+                                search={search}
+                                navigateBack={() => {
+                                    this.setState({
+                                        showTorrentClient: true,
+                                        showMovies: false,
+                                        filterTorrent: (x) => {
+                                            return true;
+                                        },
+                                        selected: "overview"
+                                    }, this.refreshStatus)
+                                }}
                                 localClient={localClient}
                             />}
                             {showTorrentClient && <TorrentClientTable
+                                search={search}
                                 onClick={(event) => {
                                     if (event.target.checked) {
                                         this.setState({selectedTorrent: torrents.map(x => x.infoHash)})
@@ -294,32 +371,45 @@ export class WebTorrentGuiV2 extends Component {
                                     torrent.files.forEach(file => {
                                         size = size + file.length
                                     })
-                                    return (<TableRow key={torrent.infoHash}
-                                                      onClick={() => this.onChangeRowSelection(torrent.infoHash)}>
-                                        <TableCell padding={"checkbox"} component="th" scope="row">
-                                            <Checkbox
-                                                color="primary"
-                                                checked={this.isRowSelected(torrent.infoHash)}
-                                            />
-                                        </TableCell>
-                                        <TableCell padding={"checkbox"} component="th" scope="row">
-                                            <Typography variant={"body2"}>{torrent.name}</Typography>
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <LinearProgressWithLabel color={color}
-                                                                     value={torrent.progress * 100}/>
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <Typography variant={"body2"}>
-                                                {state}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <Typography variant={"body2"}>
-                                                {humanFileSize(size)}
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>)
+                                    let isRowSelected = this.isRowSelected(torrent.infoHash)
+                                    return (<>
+                                        <TableRow key={torrent.infoHash} sx={{borderBottom: 'unset'}}>
+                                            <TableCell padding={"checkbox"} component="th" scope="row">
+                                                <Checkbox
+                                                    color="primary"
+                                                    checked={isRowSelected}
+                                                    onClick={() => this.onChangeRowSelection(torrent.infoHash)}
+                                                />
+                                            </TableCell>
+                                            <TableCell component="th" scope="row">
+                                                <Typography variant={"body2"}>{torrent.name}</Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <LinearProgressWithLabel color={color}
+                                                                         value={torrent.progress * 100}/>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant={"body2"}>
+                                                    {state}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant={"body2"}>
+                                                    {humanFileSize(size)}
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow key={"Secondary-" + torrent.infoHash}>
+                                            <TableCell padding={"checkbox"} sx={{paddingBottom: 0, paddingTop: 0}}
+                                                       colSpan={6}>
+                                                <Collapse in={isRowSelected} timeout="auto" unmountOnExit>
+                                                    {torrent.files.map(f => {
+                                                        return <FileElement file={f} client={client}/>
+                                                    })}
+                                                </Collapse>
+                                            </TableCell>
+                                        </TableRow>
+                                    </>)
                                 }}/>}
                         </Stack>
                     </Stack>
@@ -380,12 +470,23 @@ export class WebTorrentGuiV2 extends Component {
     }
     darkLightMode = (e, checked) => {
         let mode = checked ? "dark" : "light";
+        let background = {
+            default: "#303030",
+            paper: "#424242"
+        }
+        if (mode == "light") {
+            background = {
+                default: grey[300],
+                paper: grey[200]
+            }
+        }
         this.setState({
             theme: createTheme({
                 ...options,
                 palette: {
                     ...options.palette,
-                    mode: mode
+                    mode,
+                    background
                 }
             })
         })
