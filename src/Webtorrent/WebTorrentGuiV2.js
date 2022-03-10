@@ -142,9 +142,7 @@ export class WebTorrentGuiV2 extends Component {
             res.data.forEach((torrent) => {
                 if (localClient.get(torrent.magnet) == null) {
                     localClient.add(torrent.magnet, null, (addedTorrent) => {
-                        console.log("CHECK TORRENT added: ", addedTorrent)
                         addedTorrent.on("ready", () => {
-                            console.log("CHECK TORRENT ready: ", addedTorrent)
                             addedTorrent.pause()
                         });
                     })
@@ -337,7 +335,8 @@ export class WebTorrentGuiV2 extends Component {
                                         filterTorrent: (x) => {
                                             return true;
                                         },
-                                        selected: "overview"
+                                        selected: "overview",
+                                        search: ""
                                     }, this.refreshStatus)
                                 }}
                                 localClient={localClient}

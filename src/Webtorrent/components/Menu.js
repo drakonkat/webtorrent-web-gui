@@ -149,7 +149,7 @@ export function Menu(props) {
                         primary="Configuration"
                     />
                 </ListItem>
-                <ListItem onClick={() => {
+                <ListItemButton onClick={() => {
                     if (props.openSettings) {
                         props.openSettings()
                     }
@@ -162,7 +162,7 @@ export function Menu(props) {
                     <ListItemText
                         primary="Settings"
                     />
-                </ListItem>
+                </ListItemButton>
                 <ListItem>
                     <ListItemAvatar>
                         <Stack alignItems={"center"} justifyContent={"center"}>
