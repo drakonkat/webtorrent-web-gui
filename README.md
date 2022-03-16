@@ -1,15 +1,16 @@
 # Webtorrent web gui
 
-### This project need an associated "[Webtorrent express api](https://gitlab.com/t5257/webtorrent-express-api)" to work
+### This project need an associated "[Webtorrent express api](https://gitlab.com/tndsite/webtorrent-express-api)" to work
 
 ### Prop Types
 Props to pass to the UI component
 
-| Property | Type   | Required? | Description                                                                                    |
-|:---------|:-------|:---------:|:-----------------------------------------------------------------------------------------------|
-| host     | String |   true    | The host where you run the service. If you start the other project locally is http://localhost |
-| port     | Number |   true    | The port where you run the service. If you start the other project locally is 3000             |
-| baseUrl     | String |   true    | Contains the URL for the API, example "http://localhost:3000"                                  |
+| Property | Type    | Required? | Description                                                                                    |
+|:---------|:--------|:---------:|:-----------------------------------------------------------------------------------------------|
+| host     | String  |   true    | The host where you run the service. If you start the other project locally is http://localhost |
+| port     | Number  |   true    | The port where you run the service. If you start the other project locally is 3000             |
+| baseUrl  | String  |   true    | Contains the URL for the API, example "http://localhost:3000"                                  |
+| remote   | Boolean |   false   | If true consider the API on a remote machine, and open remote link                             |
 
 ### Examples
 
@@ -68,7 +69,7 @@ client.addTorrent({magnet: ""})
 
 ### Run locally
 
-1. Start the project "[Webtorrent express api](https://gitlab.com/t5257/webtorrent-express-api)"
+1. Start the project "[Webtorrent express api](https://gitlab.com/tndsite/webtorrent-express-api)"
 2. Run ```npm install```
 3. Run ```npm run dev```
 

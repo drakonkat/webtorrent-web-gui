@@ -226,6 +226,7 @@ export class WebTorrentGuiV2 extends Component {
             search,
             selected
         } = this.state;
+        let {remote} = this.props;
         let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
         return (
             <ThemeProvider theme={theme}>
@@ -403,7 +404,8 @@ export class WebTorrentGuiV2 extends Component {
                                                        colSpan={6}>
                                                 <Collapse in={isRowSelected} timeout="auto" unmountOnExit>
                                                     {torrent.files.map(f => {
-                                                        return <FileElement file={f} client={client}/>
+                                                        return <FileElement torrentMagnet={torrent.magnet}
+                                                                            remote={remote} file={f} client={client}/>
                                                     })}
                                                 </Collapse>
                                             </TableCell>

@@ -115,6 +115,9 @@ export class WebTorrentHelper {
             }
         });
     }
+    fileStreamLink = (id, fileName) => {
+        return this.config.baseUrl + "/file/stream/" + fileName + "?fileid=" + id;
+    }
 
     search = (q) => {
         if (!q) {
