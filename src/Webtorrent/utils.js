@@ -30,3 +30,22 @@ export function toTime(input) {
     return date.toISOString().substr(11, 8);
 
 }
+
+export const getDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent)
+}
+
+export const copyToClipboard = (text) => {
+    if (getDevice()) {
+        let dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+    } else {
+        navigator.clipboard.writeText(text)
+    }
+
+}
+

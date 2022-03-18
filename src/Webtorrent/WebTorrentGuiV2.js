@@ -20,17 +20,19 @@ import {
 } from "@mui/material";
 import {
     AddCircle,
+    ContentCopy,
     Delete,
     DeleteForever,
     Download,
     KeyboardArrowDown,
     KeyboardArrowUp,
+    Link,
     PauseCircle,
     PlayCircle,
     Search,
     Upload
 } from "@mui/icons-material";
-import {humanFileSize, toTime} from "./utils";
+import {copyToClipboard, humanFileSize, toTime} from "./utils";
 import WebTorrent from "webtorrent";
 import {LinearProgressWithLabel} from "./components/LinearProgressWithLabel";
 
@@ -388,15 +390,31 @@ export class WebTorrentGuiV2 extends Component {
                                                 <LinearProgressWithLabel color={color}
                                                                          value={torrent.progress * 100}/>
                                             </TableCell>
-                                            <TableCell align="right">
+                                            <TableCell align="left">
                                                 <Typography variant={"body2"}>
                                                     {state}
                                                 </Typography>
                                             </TableCell>
-                                            <TableCell align="right">
+                                            <TableCell align="left">
                                                 <Typography variant={"body2"}>
                                                     {humanFileSize(size)}
                                                 </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Tooltip title={"Copy a link to share with friends!"}>
+                                                    <IconButton onClick={() => {
+                                                        copyToClipboard("https://tndsite.gitlab.io/quix-player/?magnet=" + torrent.magnet)
+                                                    }}>
+                                                        <Link color={"primary"}/>
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title={"Copy manget to the clipboard"}>
+                                                    <IconButton onClick={() => {
+                                                        copyToClipboard(torrent.magnet)
+                                                    }}>
+                                                        <ContentCopy color={"primary"}/>
+                                                    </IconButton>
+                                                </Tooltip>
                                             </TableCell>
                                         </TableRow>
                                         <TableRow key={"Secondary-" + torrent.infoHash}>
@@ -404,7 +422,8 @@ export class WebTorrentGuiV2 extends Component {
                                                        colSpan={6}>
                                                 <Collapse in={isRowSelected} timeout="auto" unmountOnExit>
                                                     {torrent.files.map(f => {
-                                                        return <FileElement torrentMagnet={torrent.magnet}
+                                                        return <FileElement key={"file-" + f.id}
+                                                                            torrentMagnet={torrent.magnet}
                                                                             remote={remote} file={f} client={client}/>
                                                     })}
                                                 </Collapse>

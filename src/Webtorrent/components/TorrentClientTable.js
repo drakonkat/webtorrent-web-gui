@@ -34,14 +34,19 @@ class TorrentClientTable extends Component {
                                 Progress
                             </Typography>
                         </TableCell>
-                        <TableCell align="right">
+                        <TableCell align="left">
                             <Typography variant={"subtitle2"}>
                                 Time left
                             </Typography>
                         </TableCell>
-                        <TableCell align="right">
+                        <TableCell align="left">
                             <Typography variant={"subtitle2"}>
                                 Size
+                            </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                            <Typography variant={"subtitle2"}>
+                                Actions
                             </Typography>
                         </TableCell>
                     </TableRow>
