@@ -119,6 +119,10 @@ export class WebTorrentHelper {
         return this.config.baseUrl + "/file/stream/" + fileName + "?fileid=" + id;
     }
 
+    getTorrentFile = (id, fileName) => {
+        return this.config.baseUrl + "/torrent/get-file/" + fileName + "?torrentId=" + id;
+    }
+
     search = (q) => {
         if (!q) {
             q = "2022";

@@ -24,6 +24,7 @@ import {
     Delete,
     DeleteForever,
     Download,
+    DownloadForOffline,
     KeyboardArrowDown,
     KeyboardArrowUp,
     Link,
@@ -33,7 +34,6 @@ import {
     Upload
 } from "@mui/icons-material";
 import {copyToClipboard, humanFileSize, toTime} from "./utils";
-import WebTorrent from "webtorrent";
 import {LinearProgressWithLabel} from "./components/LinearProgressWithLabel";
 
 import {Menu} from "./components/Menu";
@@ -110,7 +110,6 @@ export class WebTorrentGuiV2 extends Component {
         showConfig: false,
         showMovies: false,
         showTorrentClient: true,
-        localClient: new WebTorrent({destroyStoreOnDestroy: false}),
         configuration: {},
         search: "",
         selected: "overview"
@@ -121,12 +120,6 @@ export class WebTorrentGuiV2 extends Component {
         let {host, port, baseUrl} = this.props
         this.setState({client: new WebTorrentHelper(baseUrl ? {baseUrl} : {baseUrl: host + ":" + port})}, async () => {
             await this.refreshStatus();
-            // if (window.location.search && window.location.search.includes("?magnet=")) {
-            //     let magnet = window.location.search.substring(8, window.location.search.length);
-            //     this.setState({
-            //         defaultMagnet: magnet
-            //     })
-            // }
         })
         this.interval = setInterval(this.refreshStatus, 3000)
     }
@@ -137,19 +130,10 @@ export class WebTorrentGuiV2 extends Component {
 
     refreshStatus = async () => {
         try {
-            let {client, localClient, filterTorrent} = this.state
+            let {client, filterTorrent} = this.state
             let res = await client.checkStatus();
             let confRes = await client.getConf();
             this.setState({torrents: res.data.filter(filterTorrent), configuration: confRes.data})
-            res.data.forEach((torrent) => {
-                if (localClient.get(torrent.magnet) == null) {
-                    localClient.add(torrent.magnet, null, (addedTorrent) => {
-                        addedTorrent.on("ready", () => {
-                            addedTorrent.pause()
-                        });
-                    })
-                }
-            })
         } catch (e) {
             console.error(e)
         }
@@ -219,7 +203,6 @@ export class WebTorrentGuiV2 extends Component {
             torrents,
             theme,
             configuration,
-            localClient,
             selectedTorrent,
             showAddTorrent,
             showConfig,
@@ -342,7 +325,6 @@ export class WebTorrentGuiV2 extends Component {
                                         search: ""
                                     }, this.refreshStatus)
                                 }}
-                                localClient={localClient}
                             />}
                             {showTorrentClient && <TorrentClientTable
                                 search={search}
@@ -401,9 +383,17 @@ export class WebTorrentGuiV2 extends Component {
                                                 </Typography>
                                             </TableCell>
                                             <TableCell align="right">
+                                                <Tooltip title={"Download torrent file"}>
+                                                    <IconButton onClick={() => {
+                                                        window.open(client.getTorrentFile(torrent.infoHash, torrent.name + ".torrent"), "_blank")
+                                                    }}>
+                                                        <DownloadForOffline color={"primary"}/>
+                                                    </IconButton>
+                                                </Tooltip>
                                                 <Tooltip title={"Copy a link to share with friends!"}>
                                                     <IconButton onClick={() => {
                                                         copyToClipboard("https://tndsite.gitlab.io/quix-player/?magnet=" + torrent.magnet)
+                                                        // copyToClipboard("https://btorrent.xyz/download#" + torrent.infoHash)
                                                     }}>
                                                         <Link color={"primary"}/>
                                                     </IconButton>

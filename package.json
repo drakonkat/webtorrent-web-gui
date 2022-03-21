@@ -1,8 +1,14 @@
 {
   "name": "webtorrent-web-gui",
-  "version": "0.9.21",
+  "version": "1.0.0",
   "description": "The component propose is to have a gui or a javascript class to manage a webtorrent-express-api server",
-  "keywords": [],
+  "keywords": [
+    "torrent",
+    "docker",
+    "express",
+    "stream",
+    "mui"
+  ],
   "repository": {
     "type": "git",
     "url": "https://gitlab.com/tndsite/webtorrent-web-gui"

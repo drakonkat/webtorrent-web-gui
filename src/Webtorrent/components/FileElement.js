@@ -17,6 +17,7 @@ function FileElement(props) {
                     onClick={() => {
                         if (file.streamable && remote) {
                             window.open("https://tndsite.gitlab.io/quix-player/?magnet=" + torrentMagnet, "_blank")
+                            // window.open("https://btorrent.xyz/view#" + torrentMagnet, "_blank");
                         } else if (remote) {
                             window.open(client.fileStreamLink(file.id, file.name), "_blank")
                         } else {

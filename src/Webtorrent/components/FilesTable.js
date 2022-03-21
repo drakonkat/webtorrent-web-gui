@@ -114,7 +114,6 @@ FilesTable.defaultProps = {
     },
     torrents: [],
     client: {},
-    localClient: {},
     search: null
 };
 
