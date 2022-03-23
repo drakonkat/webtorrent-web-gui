@@ -22,7 +22,7 @@ export function Menu(props) {
     >
         <Stack sx={{height: "100%"}} justifyContent={"space-between"}>
             <Stack>
-                {logo && <img src={logo} alt={"logo"}/>}
+                {logo && <img style={{maxWidth: "250px"}} src={logo} alt={"logo"}/>}
                 <List dense={true}>
                     <ListItem>
                         <ListItemText
