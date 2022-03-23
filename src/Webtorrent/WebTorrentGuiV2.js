@@ -211,7 +211,7 @@ export class WebTorrentGuiV2 extends Component {
             search,
             selected
         } = this.state;
-        let {remote} = this.props;
+        let {remote, logo} = this.props;
         let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
         return (
             <ThemeProvider theme={theme}>
@@ -221,6 +221,7 @@ export class WebTorrentGuiV2 extends Component {
                         sx={{height: "100%"}}
                         direction={"row"}>
                         <Menu
+                            logo={logo}
                             selected={selected}
                             onChange={this.darkLightMode}
                             openSettings={this.openSettings}

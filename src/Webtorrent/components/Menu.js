@@ -13,7 +13,7 @@ import {DarkMode, Download, Home, LibraryBooks, LibraryMusic, Movie, Settings, T
 import React from "react";
 
 export function Menu(props) {
-    let {selected} = props;
+    let {selected, logo} = props;
     return <Stack
         sx={{
             paddingLeft: "10px",
@@ -22,6 +22,7 @@ export function Menu(props) {
     >
         <Stack sx={{height: "100%"}} justifyContent={"space-between"}>
             <Stack>
+                {logo && <img src={logo} alt={"logo"}/>}
                 <List dense={true}>
                     <ListItem>
                         <ListItemText
