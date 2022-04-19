@@ -43,6 +43,7 @@ import TorrentClientTable from "./components/TorrentClientTable";
 import FilesTable from "./components/FilesTable";
 import {grey} from "@mui/material/colors";
 import FileElement from "./components/FileElement";
+import GamesList from "./components/GamesList";
 
 const defaultTheme = createTheme();
 const options = {
@@ -109,6 +110,7 @@ export class WebTorrentGuiV2 extends Component {
         showAddTorrent: false,
         showConfig: false,
         showMovies: false,
+        showGames: false,
         showTorrentClient: true,
         configuration: {},
         search: "",
@@ -209,7 +211,8 @@ export class WebTorrentGuiV2 extends Component {
             showTorrentClient,
             showMovies,
             search,
-            selected
+            selected,
+            showGames
         } = this.state;
         let {remote, logo} = this.props;
         let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
@@ -229,6 +232,7 @@ export class WebTorrentGuiV2 extends Component {
                                 this.setState({
                                     showTorrentClient: true,
                                     showMovies: false,
+                                    showGames: false,
                                     filterTorrent: (x) => {
                                         return x.paused == false && x.progress != 1;
                                     },
@@ -239,6 +243,7 @@ export class WebTorrentGuiV2 extends Component {
                                 this.setState({
                                     showTorrentClient: true,
                                     showMovies: false,
+                                    showGames: false,
                                     filterTorrent: (x) => {
                                         return x.paused == false && x.progress >= 1;
                                     },
@@ -249,6 +254,7 @@ export class WebTorrentGuiV2 extends Component {
                                 this.setState({
                                     showTorrentClient: true,
                                     showMovies: false,
+                                    showGames: false,
                                     filterTorrent: (x) => {
                                         return true;
                                     },
@@ -259,7 +265,16 @@ export class WebTorrentGuiV2 extends Component {
                                 this.setState({
                                     showMovies: true,
                                     showTorrentClient: false,
+                                    showGames: false,
                                     selected: "movies"
+                                })
+                            }}
+                            switchGames={() => {
+                                this.setState({
+                                    showGames: true,
+                                    showMovies: false,
+                                    showTorrentClient: false,
+                                    selected: "games"
                                 })
                             }}
                         />
@@ -312,6 +327,22 @@ export class WebTorrentGuiV2 extends Component {
                             </Stack>
                             <Divider/>
                             {showMovies && <FilesTable
+                                client={client}
+                                torrents={torrents}
+                                search={search}
+                                navigateBack={() => {
+                                    this.setState({
+                                        showTorrentClient: true,
+                                        showMovies: false,
+                                        filterTorrent: (x) => {
+                                            return true;
+                                        },
+                                        selected: "overview",
+                                        search: ""
+                                    }, this.refreshStatus)
+                                }}
+                            />}
+                            {showGames && <GamesList
                                 client={client}
                                 torrents={torrents}
                                 search={search}

@@ -9,7 +9,7 @@ import {
     Switch,
     Tooltip
 } from "@mui/material";
-import {DarkMode, Download, Home, LibraryBooks, LibraryMusic, Movie, Settings, Tv, Upload} from "@mui/icons-material";
+import {DarkMode, Download, Home, LibraryBooks, LibraryMusic, Movie, Settings, Tv, Upload, VideogameAsset} from "@mui/icons-material";
 import React from "react";
 
 export function Menu(props) {
@@ -99,6 +99,23 @@ export function Menu(props) {
                             </ListItemAvatar>
                             <ListItemText
                                 primary="Movies"
+                            />
+                        </ListItemButton>
+                    </Tooltip>
+                    <Tooltip title={"A curated list of repacked games"}>
+                        <ListItemButton
+                            onClick={() => {
+                                props.switchGames()
+                            }}
+                            selected={selected == "games"}
+                        >
+                            <ListItemAvatar>
+                                <Stack alignItems={"center"} justifyContent={"center"}>
+                                    <VideogameAsset/>
+                                </Stack>
+                            </ListItemAvatar>
+                            <ListItemText
+                                primary="Games"
                             />
                         </ListItemButton>
                     </Tooltip>
