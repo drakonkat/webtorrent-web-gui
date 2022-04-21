@@ -135,4 +135,14 @@ export class WebTorrentHelper {
             }
         });
     }
+
+    searchGames = (q) => {
+        return this.axios({
+            method: "get",
+            url: "/file/games/fitgirl/?q=" + q,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 }
