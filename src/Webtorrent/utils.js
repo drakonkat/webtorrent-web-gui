@@ -35,7 +35,7 @@ export const getDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent)
 }
 
-export const copyToClipboard = (text) => {
+export const copyToClipboard = (text, fb) => {
     if (getDevice()) {
         let dummy = document.createElement("textarea");
         document.body.appendChild(dummy);
@@ -45,6 +45,9 @@ export const copyToClipboard = (text) => {
         document.body.removeChild(dummy);
     } else {
         navigator.clipboard.writeText(text)
+    }
+    if (fb) {
+        fb()
     }
 
 }

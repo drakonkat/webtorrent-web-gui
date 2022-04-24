@@ -10,6 +10,7 @@ import {
     Divider,
     IconButton,
     InputAdornment,
+    Snackbar,
     Stack,
     TableCell,
     TableRow,
@@ -114,7 +115,10 @@ export class WebTorrentGuiV2 extends Component {
         showTorrentClient: true,
         configuration: {},
         search: "",
-        selected: "overview"
+        selected: "overview",
+        severity: "success",
+        snackbar: false,
+        snackbarMessage: "Copied to clipboard"
 
     }
 
@@ -123,7 +127,7 @@ export class WebTorrentGuiV2 extends Component {
         this.setState({client: new WebTorrentHelper(baseUrl ? {baseUrl} : {baseUrl: host + ":" + port})}, async () => {
             await this.refreshStatus();
         })
-        this.interval = setInterval(this.refreshStatus, 3000)
+        this.interval = setInterval(this.refreshStatus, 5000)
     }
 
     componentWillUnmount() {
@@ -198,6 +202,9 @@ export class WebTorrentGuiV2 extends Component {
         }
     }
 
+    openSnackbar = () => {
+        this.setState({snackbar: true})
+    }
 
     render() {
         let {
@@ -212,7 +219,8 @@ export class WebTorrentGuiV2 extends Component {
             showMovies,
             search,
             selected,
-            showGames
+            showGames,
+            severity, snackbar, snackbarMessage
         } = this.state;
         let {remote, logo} = this.props;
         let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
@@ -220,6 +228,17 @@ export class WebTorrentGuiV2 extends Component {
             <ThemeProvider theme={theme}>
                 <CssBaseline enableColorScheme/>
                 <Container maxWidth="false">
+                    <Snackbar
+                        anchorOrigin={{vertical: "top", horizontal: "right"}}
+                        open={snackbar}
+                        onClose={() => {
+                            this.setState({snackbar: false})
+                        }}
+                        severity={severity}
+                        message={snackbarMessage}
+                        key={"snackabr"}
+                        autoHideDuration={5000}
+                    />
                     <Stack
                         sx={{height: "100%"}}
                         direction={"row"}>
@@ -350,6 +369,7 @@ export class WebTorrentGuiV2 extends Component {
                                     this.setState({
                                         showTorrentClient: true,
                                         showMovies: false,
+                                        showGames: false,
                                         filterTorrent: (x) => {
                                             return true;
                                         },
@@ -424,15 +444,15 @@ export class WebTorrentGuiV2 extends Component {
                                                 </Tooltip>
                                                 <Tooltip title={"Copy a link to share with friends!"}>
                                                     <IconButton onClick={() => {
-                                                        copyToClipboard("https://tndsite.gitlab.io/quix-player/?magnet=" + torrent.magnet)
-                                                        // copyToClipboard("https://btorrent.xyz/download#" + torrent.infoHash)
+                                                        copyToClipboard("https://tndsite.gitlab.io/quix-player/?magnet=" + torrent.infoHash, this.openSnackbar)
+                                                        // copyToClipboard("https://btorrent.xyz/download#" + torrent.infoHash, this.openSnackbar)
                                                     }}>
                                                         <Link color={"primary"}/>
                                                     </IconButton>
                                                 </Tooltip>
-                                                <Tooltip title={"Copy manget to the clipboard"}>
+                                                <Tooltip title={"Copy magnet to the clipboard"}>
                                                     <IconButton onClick={() => {
-                                                        copyToClipboard(torrent.magnet)
+                                                        copyToClipboard(torrent.magnet, this.openSnackbar)
                                                     }}>
                                                         <ContentCopy color={"primary"}/>
                                                     </IconButton>

@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import {IconButton, LinearProgress, Stack, Tooltip, Typography} from "@mui/material";
-import {Attachment, CloudDownload, Download, Upload} from "@mui/icons-material";
+import {Attachment, CloudDownload} from "@mui/icons-material";
 
 class GamesList extends Component {
     state = {
@@ -30,7 +30,8 @@ class GamesList extends Component {
             this.setState({
                 games: res.data.map(game => {
                     let disabled = torrents.some(t => {
-                        return t.magnet.includes(game.magnets[0])
+                        console.log("CHECK HERE: ", game.magnets[0].toLowerCase().includes(t.infoHash.substring(0, t.infoHash.length - 3)), game, t)
+                        return game.magnets[0].toLowerCase().includes(t.infoHash.substring(0, t.infoHash.length - 3))
                     })
                     return (<Stack
                         alignItems={"center"}
