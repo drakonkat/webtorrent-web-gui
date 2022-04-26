@@ -4,7 +4,7 @@ import logo from './asset/logo-nobackground.png'
 function App() {
 
     return (
-        <WebTorrentGuiV2 logo={logo} remote={false} baseUrl={"http://localhost:3000"}/>
+        <WebTorrentGuiV2 logo={logo} remote={true} baseUrl={"http://localhost:3000"}/>
     );
 }
 

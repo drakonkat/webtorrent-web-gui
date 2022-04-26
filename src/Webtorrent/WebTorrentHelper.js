@@ -116,11 +116,27 @@ export class WebTorrentHelper {
         });
     }
     fileStreamLink = (id, fileName) => {
-        return this.config.baseUrl + "/file/stream/" + fileName + "?fileid=" + id;
+        let url = "/file/stream/" + fileName + "?fileid=" + id;
+        if (this.config.baseUrl.includes("http")) {
+            return this.config.baseUrl + url;
+        } else {
+            let protocol = window.location.protocol;
+            let domain = window.location.hostname;
+            let port = window.location.port;
+            return `${protocol}//${domain}${port ? (":" + port) : ""}` + url
+        }
     }
 
     getTorrentFile = (id, fileName) => {
-        return this.config.baseUrl + "/torrent/get-file/" + fileName + "?torrentId=" + id;
+        let url = "/torrent/get-file/" + fileName + "?torrentId=" + id;
+        if (this.config.baseUrl.includes("http")) {
+            return this.config.baseUrl + url;
+        } else {
+            let protocol = window.location.protocol;
+            let domain = window.location.hostname;
+            let port = window.location.port;
+            return `${protocol}//${domain}${port ? (":" + port) : ""}` + url
+        }
     }
 
     search = (q) => {
