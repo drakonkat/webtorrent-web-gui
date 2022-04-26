@@ -437,7 +437,7 @@ export class WebTorrentGuiV2 extends Component {
                                             <TableCell align="right">
                                                 <Tooltip title={"Download torrent file"}>
                                                     <IconButton onClick={() => {
-                                                        window.open(client.getTorrentFile(torrent.infoHash, torrent.name + ".torrent"), "_blank")
+                                                        window.open(client.getTorrentFile(torrent.infoHash, torrent.name + ".torrent", remote), "_blank")
                                                     }}>
                                                         <DownloadForOffline color={"primary"}/>
                                                     </IconButton>

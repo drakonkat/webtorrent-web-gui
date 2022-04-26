@@ -115,9 +115,9 @@ export class WebTorrentHelper {
             }
         });
     }
-    fileStreamLink = (id, fileName) => {
+    fileStreamLink = (id, fileName, remote) => {
         let url = "/file/stream/" + fileName + "?fileid=" + id;
-        if (this.config.baseUrl.includes("http")) {
+        if (!remote || this.config.baseUrl.includes("http")) {
             return this.config.baseUrl + url;
         } else {
             let protocol = window.location.protocol;
@@ -127,9 +127,9 @@ export class WebTorrentHelper {
         }
     }
 
-    getTorrentFile = (id, fileName) => {
+    getTorrentFile = (id, fileName, remote) => {
         let url = "/torrent/get-file/" + fileName + "?torrentId=" + id;
-        if (this.config.baseUrl.includes("http")) {
+        if (!remote || this.config.baseUrl.includes("http")) {
             return this.config.baseUrl + url;
         } else {
             let protocol = window.location.protocol;
