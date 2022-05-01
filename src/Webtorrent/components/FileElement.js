@@ -19,7 +19,10 @@ function FileElement(props) {
                             window.open("https://tndsite.gitlab.io/quix-player/?magnet=" + torrentMagnet, "_blank")
                             // window.open("https://btorrent.xyz/view#" + torrentMagnet, "_blank");
                         } else if (remote) {
-                            window.open(client.fileStreamLink(file.id, file.name, remote), "_blank")
+                            let a = document.createElement("a");
+                            a.href = client.fileStreamLink(file.id, file.name, remote);
+                            a.download = file.name;
+                            a.click();
                         } else {
                             client.fileOpen(file.id);
                         }
