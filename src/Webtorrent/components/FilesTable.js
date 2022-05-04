@@ -27,7 +27,7 @@ class FilesTable extends Component {
         try {
             let {client, search, torrents, navigateBack} = this.props
             this.setState({loading: true})
-            let res = await client.search(search);
+            let res = await client.searchMovie(search);
             this.setState({
                 files: res.data.map(file => {
                     let disabled = torrents.some(t => {
@@ -60,9 +60,9 @@ class FilesTable extends Component {
                                 justifyContent={"flex-start"}
                             >
                                 <Upload color={"success"} fontSize={"small"}/>
-                                <Typography variant={"body1"}>Seed: {file.seed}</Typography>
+                                <Typography variant={"body1"}>Seed: {file.seeders || file.seed}</Typography>
                                 <Download color={"success"} fontSize={"small"}/>
-                                <Typography variant={"body1"}>Leech: {file.leech}</Typography>
+                                <Typography variant={"body1"}>Leech: {file.peers || file.leech}</Typography>
                             </Stack>
                             <Stack
                                 direction={"row"}
@@ -70,7 +70,7 @@ class FilesTable extends Component {
                                 justifyContent={"flex-start"}
                             >
                                 <Attachment color={"success"} fontSize={"small"}/>
-                                <Typography variant={"body1"}>{humanFileSize(file.filesize)}</Typography>
+                                <Typography variant={"body1"}>{humanFileSize(file.size || file.filesize)}</Typography>
                             </Stack>
                         </Stack>
                         <Tooltip title={file.title}>
@@ -78,7 +78,7 @@ class FilesTable extends Component {
                                 disabled={disabled}
                                 size={"medium"}
                                 onClick={() => {
-                                    client.addTorrent({magnet: file.magnetlink})
+                                    client.addTorrent({magnet: file.magneturl || file.magnetlink || file.link})
                                     navigateBack();
                                 }}
                             >

@@ -52,7 +52,7 @@ class TorrentClientTable extends Component {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {torrents && torrents.filter(x => x.name.includes(search)).map(callbackfn)}
+                    {torrents && torrents.filter(x => x.name && x.name.includes(search)).map(callbackfn)}
                 </TableBody>
             </Table>
         </TableContainer>;

@@ -26,8 +26,6 @@ import {
     DeleteForever,
     Download,
     DownloadForOffline,
-    KeyboardArrowDown,
-    KeyboardArrowUp,
     Link,
     PauseCircle,
     PlayCircle,
@@ -317,9 +315,10 @@ export class WebTorrentGuiV2 extends Component {
                                     <Button size={"small"} color={"primary"} variant={"contained"}
                                             startIcon={<DeleteForever/>} onClick={this.destroyAll}>Delete</Button>
                                 </Tooltip>
-                                <Divider orientation={"vertical"}/>
-                                <IconButton disabled color={"primary"}><KeyboardArrowUp/></IconButton>
-                                <IconButton disabled color={"primary"}><KeyboardArrowDown/></IconButton>
+                                {/*TODO Enable when sorting is working                                */}
+                                {/*<Divider orientation={"vertical"}/>*/}
+                                {/*<IconButton disabled color={"primary"}><KeyboardArrowUp/></IconButton>*/}
+                                {/*<IconButton disabled color={"primary"}><KeyboardArrowDown/></IconButton>*/}
                                 <Divider orientation={"vertical"}/>
                                 <TextField size={"small"} variant={"outlined"} label={"Search"}
                                            InputProps={{
