@@ -163,6 +163,18 @@ export class WebTorrentHelper {
             }
         });
     }
+    searchTv = (q) => {
+        if (!q) {
+            q = "2022";
+        }
+        return this.axios({
+            method: "get",
+            url: "/file/tvshow?q=" + q,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 
     searchGames = (q) => {
         return this.axios({

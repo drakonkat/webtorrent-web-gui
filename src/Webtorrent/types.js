@@ -1,0 +1,7 @@
+export const GAMES = Symbol("GAMES")
+export const MUSIC = Symbol("MUSIC")
+export const MOVIES = Symbol("MOVIES")
+export const TVSHOW = Symbol("TVSHOW")
+export const CLIENT = Symbol("CLIENT")
+export const CLIENT_DOWNLOAD = Symbol("CLIENT_DOWNLOAD")
+export const CLIENT_SEEDING = Symbol("CLIENT_SEEDING")

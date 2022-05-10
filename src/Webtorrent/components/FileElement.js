@@ -1,5 +1,5 @@
 import React from 'react';
-import {IconButton, Stack, Tooltip, Typography} from "@mui/material";
+import {ListItemButton, Tooltip, Typography} from "@mui/material";
 import {OpenInNew} from "@mui/icons-material";
 
 function FileElement(props) {
@@ -7,32 +7,36 @@ function FileElement(props) {
     if (!remote) {
         remote = false;
     }
+    let onClick = () => {
+        if (file.streamable && remote) {
+            window.open("https://tndsite.gitlab.io/quix-player/?magnet=" + torrentMagnet, "_blank")
+            // window.open("https://btorrent.xyz/view#" + torrentMagnet, "_blank");
+        } else if (remote) {
+            let a = document.createElement("a");
+            a.href = client.fileStreamLink(file.id, file.name, remote);
+            a.download = file.name;
+            a.click();
+        } else {
+            client.fileOpen(file.id);
+        }
+    }
     return (
-        <Stack alignItems={"center"} sx={{width: "100%"}} direction={"row"}>
-            <Tooltip
-                title={remote ? "Stream file if in a compatible format, if not when is completed can be downloaded" : "Open file locally (Even if download is not complete)"}>
-                <IconButton
-                    disabled={(!file.streamable && remote && !file.done)}
-                    color={"primary"}
-                    onClick={() => {
-                        if (file.streamable && remote) {
-                            window.open("https://tndsite.gitlab.io/quix-player/?magnet=" + torrentMagnet, "_blank")
-                            // window.open("https://btorrent.xyz/view#" + torrentMagnet, "_blank");
-                        } else if (remote) {
-                            let a = document.createElement("a");
-                            a.href = client.fileStreamLink(file.id, file.name, remote);
-                            a.download = file.name;
-                            a.click();
-                        } else {
-                            client.fileOpen(file.id);
-                        }
-                    }}>
-                    <OpenInNew/>
-                </IconButton>
-            </Tooltip>
-            <Typography variant={"body1"}>{file.name}</Typography>
-        </Stack>
-    );
+        <Tooltip
+            title={remote ? "Stream file if in a compatible format, if not when is completed can be downloaded" : "Open file locally (Even if download is not complete)"}>
+            <ListItemButton disabled={(!file.streamable && remote && !file.done)} alignItems={"center"}
+                            sx={{width: "100%", gap: 10}}
+                            direction={"row"} onClick={onClick}>
+                {/*<IconButton*/}
+                {/*    disabled={(!file.streamable && remote && !file.done)}*/}
+                {/*    color={"primary"}*/}
+                {/*>*/}
+                <OpenInNew/>
+                {/*</IconButton>*/}
+                <Typography variant={"body1"}>{file.name}</Typography>
+            </ListItemButton>
+        </Tooltip>
+    )
+        ;
 }
 
 export default FileElement;

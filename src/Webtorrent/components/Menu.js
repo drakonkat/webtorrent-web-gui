@@ -9,11 +9,12 @@ import {
     Switch,
     Tooltip
 } from "@mui/material";
-import {DarkMode, Download, Home, LibraryBooks, LibraryMusic, Movie, Settings, Tv, Upload, VideogameAsset} from "@mui/icons-material";
+import {DarkMode, Download, Home, LibraryMusic, Movie, Settings, Tv, Upload, VideogameAsset} from "@mui/icons-material";
 import React from "react";
+import {CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, GAMES, MOVIES, MUSIC, TVSHOW} from "../types";
 
 export function Menu(props) {
-    let {selected, logo} = props;
+    let {logo, defaultMenu, changeView, enabledView} = props;
     return <Stack
         sx={{
             paddingLeft: "10px",
@@ -30,8 +31,7 @@ export function Menu(props) {
                         />
                     </ListItem>
                     <ListItemButton
-
-                        selected={selected == "overview"}
+                        selected={enabledView === CLIENT}
                         onClick={() => {
                             props.filterHome()
                         }}
@@ -46,7 +46,7 @@ export function Menu(props) {
                         />
                     </ListItemButton>
                     <ListItemButton
-                        selected={selected == "downloading"}
+                        selected={enabledView === CLIENT_DOWNLOAD}
                         onClick={() => {
                             props.filterDownload()
                         }}
@@ -62,7 +62,7 @@ export function Menu(props) {
                         />
                     </ListItemButton>
                     <ListItemButton
-                        selected={selected == "seeding"}
+                        selected={enabledView === CLIENT_SEEDING}
                         onClick={() => {
                             props.filterSeeding()
                         }}
@@ -82,82 +82,45 @@ export function Menu(props) {
                 <List dense={true}>
                     <ListItem>
                         <ListItemText
-                            primary="Explore (Coming soon)"
+                            primary="Explore"
                         />
                     </ListItem>
-                    <Tooltip title={"Explore a list of movies"}>
-                        <ListItemButton
-                            onClick={() => {
-                                props.switchMovies()
-                            }}
-                            selected={selected == "movies"}
-                        >
-                            <ListItemAvatar>
-                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                    <Movie/>
-                                </Stack>
-                            </ListItemAvatar>
-                            <ListItemText
-                                primary="Movies"
-                            />
-                        </ListItemButton>
-                    </Tooltip>
-                    <Tooltip title={"A curated list of repacked games"}>
-                        <ListItemButton
-                            onClick={() => {
-                                props.switchGames()
-                            }}
-                            selected={selected == "games"}
-                        >
-                            <ListItemAvatar>
-                                <Stack alignItems={"center"} justifyContent={"center"}>
-                                    <VideogameAsset/>
-                                </Stack>
-                            </ListItemAvatar>
-                            <ListItemText
-                                primary="Games"
-                            />
-                        </ListItemButton>
-                    </Tooltip>
-                    <ListItemButton
-                        disabled
-
-                    >
-                        <ListItemAvatar>
-                            <Stack alignItems={"center"} justifyContent={"center"}>
-                                <Tv/>
-                            </Stack>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="Series"
-                        />
-                    </ListItemButton>
-                    <ListItemButton
-                        disabled
-
-                    >
-                        <ListItemAvatar>
-                            <Stack alignItems={"center"} justifyContent={"center"}>
-                                <LibraryMusic/>
-                            </Stack>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="Music"
-                        />
-                    </ListItemButton>
-                    <ListItemButton
-                        disabled
-
-                    >
-                        <ListItemAvatar>
-                            <Stack alignItems={"center"} justifyContent={"center"}>
-                                <LibraryBooks/>
-                            </Stack>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="Book"
-                        />
-                    </ListItemButton>
+                    {defaultMenu.map((x, index) => {
+                        let {tooltip, type, label} = x
+                        let icon;
+                        switch (type) {
+                            case MOVIES:
+                                icon = <Movie/>;
+                                break;
+                            case GAMES:
+                                icon = <VideogameAsset/>;
+                                break;
+                            case TVSHOW:
+                                icon = <Tv/>;
+                                break;
+                            case MUSIC:
+                                icon = <LibraryMusic/>;
+                                break;
+                        }
+                        return <Tooltip key={"MENU_VOICE_" + index} open={tooltip ? undefined : false}
+                                        title={tooltip || ""}>
+                            <ListItemButton
+                                onClick={() => {
+                                    changeView(type)
+                                }}
+                                selected={enabledView === type}
+                            >
+                                <ListItemAvatar>
+                                    <Stack alignItems={"center"} justifyContent={"center"}>
+                                        {icon}
+                                    </Stack>
+                                </ListItemAvatar>
+                                <ListItemText
+                                    primary={label}
+                                />
+                            </ListItemButton>
+                        </Tooltip>
+                    })}
                 </List>
                 <Divider/>
             </Stack>

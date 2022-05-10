@@ -1,13 +1,17 @@
 import React, {Component} from "react";
-import {IconButton, LinearProgress, Stack, Tooltip, Typography} from "@mui/material";
+import {Alert, IconButton, LinearProgress, Snackbar, Stack, Tooltip, Typography} from "@mui/material";
 import {Attachment, CloudDownload, Download, Upload} from "@mui/icons-material";
 import {humanFileSize} from "../utils";
+
 
 class FilesTable extends Component {
     state = {
         loading: true,
-        files: []
+        files: [],
+        snackbar: false,
+        snackbarMessage: "Adding torrent..."
     }
+
 
     componentDidMount() {
         let search = this.props
@@ -23,17 +27,45 @@ class FilesTable extends Component {
         }
     }
 
+    componentWillUnmount() {
+        clearInterval(this.addingCheck)
+    }
+
+    checkAdded = (file, torrentsLenght, executions) => {
+        let {torrents} = this.props
+        //TODO Handle executions < 20 as a possible error
+        let disabled = torrents.length > torrentsLenght || executions > 20
+        if (disabled) {
+            this.setState({
+                snackbar: true,
+                snackbarMessage: "Added torrent " + file.title
+            }, () => {
+                setTimeout(() => {
+                    this.setState(p => {
+                        return {
+                            snackbar: false,
+                            snackbarMessage: "Adding torrent..."
+                        }
+                    }, () => {
+                        clearInterval(this.addingCheck)
+                    })
+                }, 2000)
+            })
+        }
+    }
+
     refreshStatus = async () => {
         try {
-            let {client, search, torrents, navigateBack} = this.props
+            let {client, search, torrents, navigateBack, searchApi} = this.props
             this.setState({loading: true})
-            let res = await client.searchMovie(search);
+            let res = await searchApi(search);
             this.setState({
-                files: res.data.map(file => {
+                files: res.data.map((file, index) => {
                     let disabled = torrents.some(t => {
                         return t.name.includes(file.title)
                     })
                     return (<Stack
+                        key={"FILES_" + index}
                         alignItems={"center"}
                         justifyContent={"center"}
                         direction={"row"}
@@ -43,8 +75,7 @@ class FilesTable extends Component {
                             padding: "10px",
                             backgroundColor: "background.default",
                             width: "100%"
-                        }}
-                        key={file.url}>
+                        }}>
                         <Stack
                             spacing={0}
                             sx={{
@@ -78,8 +109,25 @@ class FilesTable extends Component {
                                 disabled={disabled}
                                 size={"medium"}
                                 onClick={() => {
-                                    client.addTorrent({magnet: file.magneturl || file.magnetlink || file.link})
-                                    navigateBack();
+                                    //TODO A volte i link di jackett redirezionano a un magnet
+                                    let magnet = file.magneturl || file.magnetlink || file.link
+                                    client.addTorrent({magnet})
+                                    // navigateBack();
+                                    clearInterval(this.addingCheck)
+                                    this.setState({
+                                        snackbar: false,
+                                        snackbatMessage: "Adding torrent..."
+                                    }, () => {
+                                        this.setState({
+                                            snackbar: true,
+                                            snackbatMessage: "Adding torrent..."
+                                        });
+                                    })
+                                    var executions = 0;
+                                    this.addingCheck = setInterval(() => {
+                                        executions += 1;
+                                        this.checkAdded(file, torrents.length, executions)
+                                    }, 800)
                                 }}
                             >
                                 <CloudDownload fontSize={"large"} color={disabled ? "disabled" : "success"}/>
@@ -99,9 +147,22 @@ class FilesTable extends Component {
     }
 
     render() {
-        let {files, loading} = this.state
+        let {files, loading, snackbar, snackbarMessage} = this.state
         return <Stack sx={{padding: "10px", backgroundColor: "background.paper", height: "100%", overflow: "auto"}}
                       spacing={2}>
+            <Snackbar
+                anchorOrigin={{vertical: "top", horizontal: "right"}}
+                open={snackbar}
+                onClose={() => {
+                    this.setState({snackbar: false})
+                }}
+                key={"snackabr"}
+                autoHideDuration={null}
+            >
+                <Alert severity="success" sx={{width: '100%'}}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
             {loading && <LinearProgress variant={"indeterminate"} color={"success"}/>}
             {!loading && files}
         </Stack>;

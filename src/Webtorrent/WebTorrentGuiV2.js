@@ -10,6 +10,10 @@ import {
     Divider,
     IconButton,
     InputAdornment,
+    List,
+    ListItemAvatar,
+    ListItemButton,
+    ListItemText,
     Snackbar,
     Stack,
     TableCell,
@@ -27,8 +31,10 @@ import {
     Download,
     DownloadForOffline,
     Link,
+    OndemandVideo,
     PauseCircle,
     PlayCircle,
+    PlayCircleOutline,
     Search,
     Upload
 } from "@mui/icons-material";
@@ -43,6 +49,7 @@ import FilesTable from "./components/FilesTable";
 import {grey} from "@mui/material/colors";
 import FileElement from "./components/FileElement";
 import GamesList from "./components/GamesList";
+import {CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, GAMES, MOVIES, TVSHOW} from "./types";
 
 const defaultTheme = createTheme();
 const options = {
@@ -107,16 +114,26 @@ export class WebTorrentGuiV2 extends Component {
             return true
         },
         showAddTorrent: false,
-        showConfig: false,
-        showMovies: false,
-        showGames: false,
-        showTorrentClient: true,
+        enabledView: CLIENT,
         configuration: {},
         search: "",
-        selected: "overview",
         severity: "success",
         snackbar: false,
-        snackbarMessage: "Copied to clipboard"
+        snackbarMessage: "Copied to clipboard",
+        defaultMenu: [
+            {
+                type: GAMES,
+                label: "Games",
+                tooltip: "A curated list of repacked games"
+            }, {
+                type: MOVIES,
+                label: "Movies",
+                tooltip: "Explore a list of movies"
+            }, {
+                type: TVSHOW,
+                label: "Tv"
+            },
+        ]
 
     }
 
@@ -204,23 +221,233 @@ export class WebTorrentGuiV2 extends Component {
         this.setState({snackbar: true})
     }
 
+    renderBody = () => {
+        let {enabledView, client, torrents, search, selectedTorrent} = this.state;
+        let {remote} = this.props;
+        switch (enabledView) {
+            case MOVIES:
+                return <FilesTable
+                    key={"FILES_TABLE_" + enabledView.toString()}
+                    client={client}
+                    torrents={torrents}
+                    search={search}
+                    searchApi={client.searchMovie}
+                    navigateBack={() => {
+                        this.setState({
+                            filterTorrent: (x) => {
+                                return true;
+                            },
+                            enabledView: CLIENT,
+                            search: ""
+                        }, this.refreshStatus)
+                    }}
+                />
+            case GAMES:
+                return <GamesList
+                    client={client}
+                    torrents={torrents}
+                    search={search}
+                    navigateBack={() => {
+                        this.setState({
+                            filterTorrent: (x) => {
+                                return true;
+                            },
+                            enabledView: GAMES,
+                            search: ""
+                        }, this.refreshStatus)
+                    }}
+                />
+            case TVSHOW:
+                return <FilesTable
+                    key={"FILES_TABLE_" + enabledView.toString()}
+                    client={client}
+                    torrents={torrents}
+                    search={search}
+                    searchApi={client.searchTv}
+                    navigateBack={() => {
+                        this.setState({
+                            filterTorrent: (x) => {
+                                return true;
+                            },
+                            enabledView: CLIENT,
+                            search: ""
+                        }, this.refreshStatus)
+                    }}
+                />
+            case CLIENT:
+            case CLIENT_DOWNLOAD:
+            case CLIENT_SEEDING:
+            default:
+                return <TorrentClientTable
+                    search={search}
+                    onClick={(event) => {
+                        if (event.target.checked) {
+                            this.setState({selectedTorrent: torrents.map(x => x.infoHash)})
+                        } else {
+                            this.setState({selectedTorrent: []})
+                        }
+                    }}
+                    torrents={torrents}
+                    predicate={x => selectedTorrent.includes(x.infoHash)}
+                    callbackfn={torrent => {
+                        let videoFiles = [];
+                        torrent.files.forEach(f => {
+                            if (f.mime && f.mime.includes("video")) {
+                                videoFiles.push(f)
+                            }
+                        })
+                        let state;
+                        let color = "primary";
+                        if (torrent.paused) {
+                            state = "paused";
+                            color = "warning";
+                        } else if (torrent.progress == 1) {
+                            state = "completed";
+                            color = "success";
+                        } else if (torrent.timeRemaining > 0) {
+                            state = toTime(torrent.timeRemaining)
+                        } else {
+                            state = "--:--"
+                        }
+                        let size = 0;
+                        torrent.files.forEach(file => {
+                            size = size + file.length
+                        })
+                        let isRowSelected = this.isRowSelected(torrent.infoHash)
+                        return (<>
+                            <TableRow key={torrent.infoHash} sx={{borderBottom: 'unset'}}>
+                                <TableCell padding={"checkbox"} component="th" scope="row">
+                                    <Checkbox
+                                        color="primary"
+                                        checked={isRowSelected}
+                                        onClick={() => this.onChangeRowSelection(torrent.infoHash)}
+                                    />
+                                </TableCell>
+                                <TableCell component="th" scope="row">
+                                    <Typography variant={"body2"}>{torrent.name}</Typography>
+                                </TableCell>
+                                <TableCell align="right">
+                                    <LinearProgressWithLabel color={color}
+                                                             value={torrent.progress * 100}/>
+                                </TableCell>
+                                <TableCell align="left">
+                                    <Typography variant={"body2"}>
+                                        {state}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell align="left">
+                                    <Typography variant={"body2"}>
+                                        {humanFileSize(size)}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell align="right">
+                                    {videoFiles.length > 0 &&
+                                        <Tooltip title={videoFiles.length === 1 ? "Reproduce video file" :
+                                            <List sx={{maxWidth: "200px", maxHeight: "400px", overflow: "auto"}}>
+                                                {videoFiles.map((file, index) => {
+                                                    return <ListItemButton key={"TO_PLAY_ELEMENT_" + index}
+                                                                           onClick={() => {
+                                                                               if (remote) {
+                                                                                   let a = document.createElement("a");
+                                                                                   a.href = client.fileStreamLink(file.id, file.name, remote);
+                                                                                   a.download = file.name;
+                                                                                   a.click();
+                                                                               } else {
+                                                                                   client.fileOpen(file.id);
+                                                                               }
+                                                                           }
+                                                                           }
+                                                    >
+                                                        <ListItemAvatar>
+                                                            <Stack alignItems={"center"} justifyContent={"center"}>
+                                                                {`${Math.round(
+                                                                    file.progress * 100,
+                                                                )}%`}
+                                                                <OndemandVideo/>
+                                                            </Stack>
+                                                        </ListItemAvatar>
+                                                        <ListItemText
+                                                            primary={file.name}
+                                                        />
+                                                    </ListItemButton>
+                                                })}
+                                            </List>}>
+                                            <IconButton onClick={() => {
+                                                if (videoFiles.length === 1) {
+                                                    let file = videoFiles[0]
+                                                    if (remote) {
+                                                        let a = document.createElement("a");
+                                                        a.href = client.fileStreamLink(file.id, file.name, remote);
+                                                        a.download = file.name;
+                                                        a.click();
+                                                    } else {
+                                                        client.fileOpen(file.id);
+                                                    }
+                                                }
+                                            }}>
+                                                <PlayCircleOutline color={"primary"}/>
+                                            </IconButton>
+                                        </Tooltip>}
+                                    <Tooltip title={"Download torrent file"}>
+                                        <IconButton onClick={() => {
+                                            let a = document.createElement("a");
+                                            a.href = client.getTorrentFile(torrent.infoHash, torrent.name + ".torrent", remote);
+                                            a.download = torrent.name + ".torrent";
+                                            a.click();
+                                        }}>
+                                            <DownloadForOffline color={"primary"}/>
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title={"Copy a link to share with friends!"}>
+                                        <IconButton onClick={() => {
+                                            copyToClipboard("https://tndsite.gitlab.io/quix-player/?magnet=" + torrent.infoHash, this.openSnackbar)
+                                            // copyToClipboard("https://btorrent.xyz/download#" + torrent.infoHash, this.openSnackbar)
+                                        }}>
+                                            <Link color={"primary"}/>
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title={"Copy magnet to the clipboard"}>
+                                        <IconButton onClick={() => {
+                                            copyToClipboard(torrent.magnet, this.openSnackbar)
+                                        }}>
+                                            <ContentCopy color={"primary"}/>
+                                        </IconButton>
+                                    </Tooltip>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow key={"Secondary-" + torrent.infoHash}>
+                                <TableCell padding={"checkbox"} sx={{paddingBottom: 0, paddingTop: 0}}
+                                           colSpan={6}>
+                                    <Collapse in={isRowSelected} timeout="auto" unmountOnExit>
+                                        {torrent.files.map(f => {
+                                            return <FileElement key={"file-" + f.id}
+                                                                torrentMagnet={torrent.magnet}
+                                                                remote={remote} file={f} client={client}/>
+                                        })}
+                                    </Collapse>
+                                </TableCell>
+                            </TableRow>
+                        </>)
+                    }}/>
+        }
+    }
+
+
     render() {
         let {
             client,
-            torrents,
             theme,
             configuration,
-            selectedTorrent,
             showAddTorrent,
             showConfig,
-            showTorrentClient,
-            showMovies,
+            enabledView,
             search,
-            selected,
-            showGames,
-            severity, snackbar, snackbarMessage
+            severity,
+            snackbar,
+            snackbarMessage,
+            defaultMenu
         } = this.state;
-        let {remote, logo} = this.props;
+        let {logo} = this.props;
         let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
         return (
             <ThemeProvider theme={theme}>
@@ -241,58 +468,39 @@ export class WebTorrentGuiV2 extends Component {
                         sx={{height: "100%"}}
                         direction={"row"}>
                         <Menu
+                            defaultMenu={defaultMenu}
                             logo={logo}
-                            selected={selected}
+                            enabledView={enabledView}
+                            changeView={(enabledView) => {
+                                this.setState({
+                                    enabledView
+                                })
+                            }}
                             onChange={this.darkLightMode}
                             openSettings={this.openSettings}
                             filterDownload={() => {
                                 this.setState({
-                                    showTorrentClient: true,
-                                    showMovies: false,
-                                    showGames: false,
                                     filterTorrent: (x) => {
-                                        return x.paused == false && x.progress != 1;
+                                        return x.paused === false && x.progress !== 1;
                                     },
-                                    selected: "downloading"
+                                    enabledView: CLIENT_DOWNLOAD
                                 }, this.refreshStatus)
                             }}
                             filterSeeding={() => {
                                 this.setState({
-                                    showTorrentClient: true,
-                                    showMovies: false,
-                                    showGames: false,
                                     filterTorrent: (x) => {
-                                        return x.paused == false && x.progress >= 1;
+                                        return x.paused === false && x.progress >= 1;
                                     },
-                                    selected: "seeding"
+                                    enabledView: CLIENT_SEEDING
                                 }, this.refreshStatus)
                             }}
                             filterHome={() => {
                                 this.setState({
-                                    showTorrentClient: true,
-                                    showMovies: false,
-                                    showGames: false,
                                     filterTorrent: (x) => {
                                         return true;
                                     },
-                                    selected: "overview"
+                                    enabledView: CLIENT
                                 }, this.refreshStatus)
-                            }}
-                            switchMovies={() => {
-                                this.setState({
-                                    showMovies: true,
-                                    showTorrentClient: false,
-                                    showGames: false,
-                                    selected: "movies"
-                                })
-                            }}
-                            switchGames={() => {
-                                this.setState({
-                                    showGames: true,
-                                    showMovies: false,
-                                    showTorrentClient: false,
-                                    selected: "games"
-                                })
                             }}
                         />
                         <Divider orientation={"vertical"}/>
@@ -319,21 +527,22 @@ export class WebTorrentGuiV2 extends Component {
                                 {/*<Divider orientation={"vertical"}/>*/}
                                 {/*<IconButton disabled color={"primary"}><KeyboardArrowUp/></IconButton>*/}
                                 {/*<IconButton disabled color={"primary"}><KeyboardArrowDown/></IconButton>*/}
-                                <Divider orientation={"vertical"}/>
-                                <TextField size={"small"} variant={"outlined"} label={"Search"}
-                                           InputProps={{
-                                               startAdornment: (
-                                                   <InputAdornment position="start">
-                                                       <Search/>
-                                                   </InputAdornment>
-                                               )
-                                           }}
-                                           value={search}
-                                           onChange={(e) => {
-                                               let text = e.target.value;
-                                               this.setState({search: text})
-                                           }}
-                                />
+                                {![CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING].includes(enabledView) && <><Divider
+                                    orientation={"vertical"}/>
+                                    <TextField size={"small"} variant={"outlined"} label={"Search"}
+                                               InputProps={{
+                                                   startAdornment: (
+                                                       <InputAdornment position="start">
+                                                           <Search/>
+                                                       </InputAdornment>
+                                                   )
+                                               }}
+                                               value={search}
+                                               onChange={(e) => {
+                                                   let text = e.target.value;
+                                                   this.setState({search: text})
+                                               }}
+                                    /></>}
                                 <Typography
                                     sx={{display: "flex", alignItems: "center"}}
                                     variant="body2"
@@ -344,137 +553,7 @@ export class WebTorrentGuiV2 extends Component {
                                 </Typography>
                             </Stack>
                             <Divider/>
-                            {showMovies && <FilesTable
-                                client={client}
-                                torrents={torrents}
-                                search={search}
-                                navigateBack={() => {
-                                    this.setState({
-                                        showTorrentClient: true,
-                                        showMovies: false,
-                                        filterTorrent: (x) => {
-                                            return true;
-                                        },
-                                        selected: "overview",
-                                        search: ""
-                                    }, this.refreshStatus)
-                                }}
-                            />}
-                            {showGames && <GamesList
-                                client={client}
-                                torrents={torrents}
-                                search={search}
-                                navigateBack={() => {
-                                    this.setState({
-                                        showTorrentClient: true,
-                                        showMovies: false,
-                                        showGames: false,
-                                        filterTorrent: (x) => {
-                                            return true;
-                                        },
-                                        selected: "overview",
-                                        search: ""
-                                    }, this.refreshStatus)
-                                }}
-                            />}
-                            {showTorrentClient && <TorrentClientTable
-                                search={search}
-                                onClick={(event) => {
-                                    if (event.target.checked) {
-                                        this.setState({selectedTorrent: torrents.map(x => x.infoHash)})
-                                    } else {
-                                        this.setState({selectedTorrent: []})
-                                    }
-                                }}
-                                torrents={torrents}
-                                predicate={x => selectedTorrent.includes(x.infoHash)}
-                                callbackfn={torrent => {
-                                    let state;
-                                    let color = "primary";
-                                    if (torrent.paused) {
-                                        state = "paused";
-                                        color = "warning";
-                                    } else if (torrent.progress == 1) {
-                                        state = "completed";
-                                        color = "success";
-                                    } else if (torrent.timeRemaining > 0) {
-                                        state = toTime(torrent.timeRemaining)
-                                    } else {
-                                        state = "--:--"
-                                    }
-                                    let size = 0;
-                                    torrent.files.forEach(file => {
-                                        size = size + file.length
-                                    })
-                                    let isRowSelected = this.isRowSelected(torrent.infoHash)
-                                    return (<>
-                                        <TableRow key={torrent.infoHash} sx={{borderBottom: 'unset'}}>
-                                            <TableCell padding={"checkbox"} component="th" scope="row">
-                                                <Checkbox
-                                                    color="primary"
-                                                    checked={isRowSelected}
-                                                    onClick={() => this.onChangeRowSelection(torrent.infoHash)}
-                                                />
-                                            </TableCell>
-                                            <TableCell component="th" scope="row">
-                                                <Typography variant={"body2"}>{torrent.name}</Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <LinearProgressWithLabel color={color}
-                                                                         value={torrent.progress * 100}/>
-                                            </TableCell>
-                                            <TableCell align="left">
-                                                <Typography variant={"body2"}>
-                                                    {state}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="left">
-                                                <Typography variant={"body2"}>
-                                                    {humanFileSize(size)}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <Tooltip title={"Download torrent file"}>
-                                                    <IconButton onClick={() => {
-                                                        let a = document.createElement("a");
-                                                        a.href = client.getTorrentFile(torrent.infoHash, torrent.name + ".torrent", remote);
-                                                        a.download = torrent.name + ".torrent";
-                                                        a.click();
-                                                    }}>
-                                                        <DownloadForOffline color={"primary"}/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title={"Copy a link to share with friends!"}>
-                                                    <IconButton onClick={() => {
-                                                        copyToClipboard("https://tndsite.gitlab.io/quix-player/?magnet=" + torrent.infoHash, this.openSnackbar)
-                                                        // copyToClipboard("https://btorrent.xyz/download#" + torrent.infoHash, this.openSnackbar)
-                                                    }}>
-                                                        <Link color={"primary"}/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title={"Copy magnet to the clipboard"}>
-                                                    <IconButton onClick={() => {
-                                                        copyToClipboard(torrent.magnet, this.openSnackbar)
-                                                    }}>
-                                                        <ContentCopy color={"primary"}/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow key={"Secondary-" + torrent.infoHash}>
-                                            <TableCell padding={"checkbox"} sx={{paddingBottom: 0, paddingTop: 0}}
-                                                       colSpan={6}>
-                                                <Collapse in={isRowSelected} timeout="auto" unmountOnExit>
-                                                    {torrent.files.map(f => {
-                                                        return <FileElement key={"file-" + f.id}
-                                                                            torrentMagnet={torrent.magnet}
-                                                                            remote={remote} file={f} client={client}/>
-                                                    })}
-                                                </Collapse>
-                                            </TableCell>
-                                        </TableRow>
-                                    </>)
-                                }}/>}
+                            {this.renderBody()}
                         </Stack>
                     </Stack>
                     <AddTorrent
@@ -529,7 +608,6 @@ export class WebTorrentGuiV2 extends Component {
 
 
     openSettings = () => {
-        console.log("CHECK SHOW CONFIG: ", true)
         this.setState({showConfig: true})
     }
     darkLightMode = (e, checked) => {
