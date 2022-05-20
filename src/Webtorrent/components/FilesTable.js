@@ -27,33 +27,6 @@ class FilesTable extends Component {
         }
     }
 
-    componentWillUnmount() {
-        clearInterval(this.addingCheck)
-    }
-
-    checkAdded = (file, torrentsLenght, executions) => {
-        let {torrents} = this.props
-        //TODO Handle executions < 20 as a possible error
-        let disabled = torrents.length > torrentsLenght || executions > 20
-        if (disabled) {
-            this.setState({
-                snackbar: true,
-                snackbarMessage: "Added torrent " + file.title
-            }, () => {
-                setTimeout(() => {
-                    this.setState(p => {
-                        return {
-                            snackbar: false,
-                            snackbarMessage: "Adding torrent..."
-                        }
-                    }, () => {
-                        clearInterval(this.addingCheck)
-                    })
-                }, 2000)
-            })
-        }
-    }
-
     refreshStatus = async () => {
         try {
             let {client, search, torrents, navigateBack, searchApi} = this.props
@@ -84,50 +57,71 @@ class FilesTable extends Component {
                             alignItems={"flex-start"}
                             justifyContent={"flex-start"}
                         >
-                            <Typography variant={"body1"}>{file.title}</Typography>
-                            <Stack
+                            <Typography variant={"body1"}>{file.name}</Typography>
+                            {(file.seeders || file.peers) && <Stack
                                 direction={"row"}
                                 alignItems={"center"}
+                                spacing={0.5}
                                 justifyContent={"flex-start"}
                             >
                                 <Upload color={"success"} fontSize={"small"}/>
-                                <Typography variant={"body1"}>Seed: {file.seeders || file.seed}</Typography>
+                                <Typography variant={"body1"}>Seed: {file.seeders}</Typography>
                                 <Download color={"success"} fontSize={"small"}/>
-                                <Typography variant={"body1"}>Leech: {file.peers || file.leech}</Typography>
-                            </Stack>
+                                <Typography variant={"body1"}>Leech: {file.peers}</Typography>
+                            </Stack>}
                             <Stack
                                 direction={"row"}
+                                spacing={0.5}
                                 alignItems={"center"}
                                 justifyContent={"flex-start"}
                             >
                                 <Attachment color={"success"} fontSize={"small"}/>
-                                <Typography variant={"body1"}>{humanFileSize(file.size || file.filesize)}</Typography>
+                                <Typography variant={"body1"}>{humanFileSize(file.size)}</Typography>
+                                {file.repackSize && <Typography
+                                    variant={"body1"}>repacked {humanFileSize(file.repackSize)}</Typography>}
                             </Stack>
                         </Stack>
-                        <Tooltip title={file.title}>
+                        <Tooltip title={file.name}>
                             <IconButton
                                 disabled={disabled}
                                 size={"medium"}
                                 onClick={() => {
-                                    //TODO A volte i link di jackett redirezionano a un magnet
-                                    let magnet = file.magneturl || file.magnetlink || file.link
-                                    client.addTorrent({magnet})
-                                    // navigateBack();
-                                    clearInterval(this.addingCheck)
                                     this.setState({
-                                        snackbar: false,
+                                        snackbar: true,
                                         snackbatMessage: "Adding torrent..."
                                     }, () => {
-                                        this.setState({
-                                            snackbar: true,
-                                            snackbatMessage: "Adding torrent..."
-                                        });
+                                        client.addTorrent({magnet: file.magnet})
+                                            .then((res) => {
+                                                this.setState({
+                                                    snackbar: true,
+                                                    snackbarMessage: "Added torrent " + file.name
+                                                }, () => {
+                                                    setTimeout(() => {
+                                                        this.setState(p => {
+                                                            return {
+                                                                snackbar: false,
+                                                                snackbarMessage: "Adding torrent..."
+                                                            }
+                                                        })
+                                                    }, 2000)
+                                                })
+                                            })
+                                            .catch((e) => {
+                                                this.setState({
+                                                    snackbar: true,
+                                                    snackbarMessage: "Error adding torrent: " + e.message
+                                                }, () => {
+                                                    setTimeout(() => {
+                                                        this.setState(p => {
+                                                            return {
+                                                                snackbar: false,
+                                                                snackbarMessage: "Adding torrent..."
+                                                            }
+                                                        })
+                                                    }, 2000)
+                                                })
+                                            })
                                     })
-                                    var executions = 0;
-                                    this.addingCheck = setInterval(() => {
-                                        executions += 1;
-                                        this.checkAdded(file, torrents.length, executions)
-                                    }, 800)
                                 }}
                             >
                                 <CloudDownload fontSize={"large"} color={disabled ? "disabled" : "success"}/>

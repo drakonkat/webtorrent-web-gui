@@ -36,7 +36,6 @@ export class WebTorrentHelper {
             data: data
         });
     }
-
     removeTorrent = (data) => {
         return this.axios({
             method: "post",
@@ -47,7 +46,6 @@ export class WebTorrentHelper {
             data: data
         });
     }
-
     destroyTorrent = (data) => {
         return this.axios({
             method: "post",
@@ -76,7 +74,6 @@ export class WebTorrentHelper {
             }
         });
     }
-
     saveConf = (data) => {
         return this.axios({
             method: "post",
@@ -87,7 +84,6 @@ export class WebTorrentHelper {
             data: data
         });
     }
-
     listFiles = () => {
         return this.axios({
             method: "get",
@@ -126,7 +122,6 @@ export class WebTorrentHelper {
             return `${protocol}//${domain}${port ? (":" + port) : ""}` + url
         }
     }
-
     getTorrentFile = (id, fileName, remote) => {
         let url = "torrent/get-file/" + fileName + "?torrentId=" + id;
         if (!remote || this.config.baseUrl.includes("http")) {
@@ -138,7 +133,6 @@ export class WebTorrentHelper {
             return `${protocol}//${domain}${port ? (":" + port) : ""}` + url
         }
     }
-
     search = (q) => {
         if (!q) {
             q = "2022";
@@ -175,7 +169,6 @@ export class WebTorrentHelper {
             }
         });
     }
-
     searchGames = (q) => {
         return this.axios({
             method: "get",
@@ -185,4 +178,25 @@ export class WebTorrentHelper {
             }
         });
     }
+
+
+    getCategory = () => {
+        return this.axios({
+            method: "get",
+            url: "/category",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+    searchIndexer = (type, q = " ") => {
+        return this.axios({
+            method: "get",
+            url: "/indexer/" + type + "?q=" + q,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 }
+

@@ -9,9 +9,20 @@ import {
     Switch,
     Tooltip
 } from "@mui/material";
-import {DarkMode, Download, Home, LibraryMusic, Movie, Settings, Tv, Upload, VideogameAsset} from "@mui/icons-material";
+import {
+    DarkMode,
+    Download,
+    Home,
+    LibraryMusic,
+    ManageSearch,
+    Movie,
+    Settings,
+    Tv,
+    Upload,
+    VideogameAsset
+} from "@mui/icons-material";
 import React from "react";
-import {CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, GAMES, MOVIES, MUSIC, TVSHOW} from "../types";
+import {CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, GAMES, MOVIES, MUSIC, SETTINGS, TVSHOW} from "../types";
 
 export function Menu(props) {
     let {logo, defaultMenu, changeView, enabledView} = props;
@@ -101,6 +112,9 @@ export function Menu(props) {
                             case MUSIC:
                                 icon = <LibraryMusic/>;
                                 break;
+                            default:
+                                icon = <ManageSearch/>
+                                break;
                         }
                         return <Tooltip key={"MENU_VOICE_" + index} open={tooltip ? undefined : false}
                                         title={tooltip || ""}>
@@ -130,11 +144,11 @@ export function Menu(props) {
                         primary="Configuration"
                     />
                 </ListItem>
-                <ListItemButton onClick={() => {
-                    if (props.openSettings) {
-                        props.openSettings()
-                    }
-                }}>
+                <ListItemButton
+                    selected={enabledView === SETTINGS}
+                    onClick={() => {
+                        changeView(SETTINGS)
+                    }}>
                     <ListItemAvatar>
                         <Stack alignItems={"center"} justifyContent={"center"}>
                             <Settings/>

@@ -1,4 +1,7 @@
 export function humanFileSize(bytes, si = false, dp = 1) {
+    if (isNaN(bytes)) {
+        return bytes;
+    }
     const thresh = si ? 1000 : 1024;
 
     if (Math.abs(bytes) < thresh) {

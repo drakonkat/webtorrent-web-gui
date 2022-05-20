@@ -28,28 +28,27 @@ import {
     ContentCopy,
     Delete,
     DeleteForever,
-    Download,
     DownloadForOffline,
     Link,
     OndemandVideo,
     PauseCircle,
     PlayCircle,
     PlayCircleOutline,
-    Search,
-    Upload
+    Search
 } from "@mui/icons-material";
 import {copyToClipboard, humanFileSize, toTime} from "./utils";
 import {LinearProgressWithLabel} from "./components/LinearProgressWithLabel";
 
 import {Menu} from "./components/Menu";
 import AddTorrent from "./components/AddTorrent";
-import ConfigDialog from "./components/ConfigDialog";
+
 import TorrentClientTable from "./components/TorrentClientTable";
 import FilesTable from "./components/FilesTable";
 import {grey} from "@mui/material/colors";
 import FileElement from "./components/FileElement";
-import GamesList from "./components/GamesList";
-import {CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, GAMES, MOVIES, TVSHOW} from "./types";
+import {CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, GAMES, MOVIES, SETTINGS, TVSHOW} from "./types";
+import {SettingsPage} from "./components/SettingsPage";
+import SpeedMeter from "./components/SpeedMeter";
 
 const defaultTheme = createTheme();
 const options = {
@@ -64,6 +63,11 @@ const options = {
         }
     },
     components: {
+        MuiTab: {
+            root: {
+                padding: "0px"
+            }
+        },
         MuiLinearProgress: {
             styleOverrides: {
                 root: {
@@ -115,7 +119,6 @@ export class WebTorrentGuiV2 extends Component {
         },
         showAddTorrent: false,
         enabledView: CLIENT,
-        configuration: {},
         search: "",
         severity: "success",
         snackbar: false,
@@ -141,6 +144,7 @@ export class WebTorrentGuiV2 extends Component {
         let {host, port, baseUrl} = this.props
         this.setState({client: new WebTorrentHelper(baseUrl ? {baseUrl} : {baseUrl: host + ":" + port})}, async () => {
             await this.refreshStatus();
+            await this.refreshCategory();
         })
         this.interval = setInterval(this.refreshStatus, 5000)
     }
@@ -153,12 +157,19 @@ export class WebTorrentGuiV2 extends Component {
         try {
             let {client, filterTorrent} = this.state
             let res = await client.checkStatus();
-            let confRes = await client.getConf();
-            this.setState({torrents: res.data.filter(filterTorrent), configuration: confRes.data})
+            this.setState({torrents: res.data.filter(filterTorrent)})
         } catch (e) {
             console.error(e)
         }
-
+    }
+    refreshCategory = async () => {
+        try {
+            let {client} = this.state
+            let res = await client.getCategory();
+            this.setState({defaultMenu: res.data})
+        } catch (e) {
+            console.error(e)
+        }
     }
 
     removeAll = () => {
@@ -225,59 +236,14 @@ export class WebTorrentGuiV2 extends Component {
         let {enabledView, client, torrents, search, selectedTorrent} = this.state;
         let {remote} = this.props;
         switch (enabledView) {
-            case MOVIES:
-                return <FilesTable
-                    key={"FILES_TABLE_" + enabledView.toString()}
+            case SETTINGS:
+                return <SettingsPage
+                    key={"VIEW_" + enabledView.toString()}
                     client={client}
-                    torrents={torrents}
-                    search={search}
-                    searchApi={client.searchMovie}
-                    navigateBack={() => {
-                        this.setState({
-                            filterTorrent: (x) => {
-                                return true;
-                            },
-                            enabledView: CLIENT,
-                            search: ""
-                        }, this.refreshStatus)
-                    }}
-                />
-            case GAMES:
-                return <GamesList
-                    client={client}
-                    torrents={torrents}
-                    search={search}
-                    navigateBack={() => {
-                        this.setState({
-                            filterTorrent: (x) => {
-                                return true;
-                            },
-                            enabledView: GAMES,
-                            search: ""
-                        }, this.refreshStatus)
-                    }}
-                />
-            case TVSHOW:
-                return <FilesTable
-                    key={"FILES_TABLE_" + enabledView.toString()}
-                    client={client}
-                    torrents={torrents}
-                    search={search}
-                    searchApi={client.searchTv}
-                    navigateBack={() => {
-                        this.setState({
-                            filterTorrent: (x) => {
-                                return true;
-                            },
-                            enabledView: CLIENT,
-                            search: ""
-                        }, this.refreshStatus)
-                    }}
-                />
+                />;
             case CLIENT:
             case CLIENT_DOWNLOAD:
             case CLIENT_SEEDING:
-            default:
                 return <TorrentClientTable
                     search={search}
                     onClick={(event) => {
@@ -429,6 +395,20 @@ export class WebTorrentGuiV2 extends Component {
                             </TableRow>
                         </>)
                     }}/>
+            case TVSHOW:
+            case GAMES:
+            case MOVIES:
+            default:
+                return <FilesTable
+                    key={"FILES_TABLE_" + enabledView.toString()}
+                    client={client}
+                    torrents={torrents}
+                    search={search}
+                    searchApi={(q) => {
+                        return client.searchIndexer(enabledView, q)
+                    }}
+                />
+
         }
     }
 
@@ -437,9 +417,7 @@ export class WebTorrentGuiV2 extends Component {
         let {
             client,
             theme,
-            configuration,
             showAddTorrent,
-            showConfig,
             enabledView,
             search,
             severity,
@@ -448,7 +426,7 @@ export class WebTorrentGuiV2 extends Component {
             defaultMenu
         } = this.state;
         let {logo} = this.props;
-        let {downloadSpeed, downloadPath, uploadSpeed, actualUpload, actualDownload} = configuration;
+        let disabledToolbar = enabledView === SETTINGS;
         return (
             <ThemeProvider theme={theme}>
                 <CssBaseline enableColorScheme/>
@@ -477,7 +455,6 @@ export class WebTorrentGuiV2 extends Component {
                                 })
                             }}
                             onChange={this.darkLightMode}
-                            openSettings={this.openSettings}
                             filterDownload={() => {
                                 this.setState({
                                     filterTorrent: (x) => {
@@ -507,29 +484,36 @@ export class WebTorrentGuiV2 extends Component {
                         <Stack sx={{width: "100%"}} direction={"column"}>
                             <Stack sx={{width: "100%", padding: "5px"}} alignItems={"center"} spacing={1}
                                    direction={"row"}>
-                                <Button size={"small"} color={"primary"} variant={"contained"}
+                                <Button disabled={disabledToolbar} size={"small"} color={"primary"}
+                                        variant={"contained"}
                                         startIcon={<AddCircle/>} onClick={() => {
                                     this.setState({showAddTorrent: true})
                                 }}>Add</Button>
-                                <Button size={"small"} color={"primary"} variant={"contained"}
+                                <Button disabled={disabledToolbar} size={"small"} color={"primary"}
+                                        variant={"contained"}
                                         startIcon={<PauseCircle/>} onClick={this.pauseAll}>pause</Button>
-                                <Button size={"small"} color={"primary"} variant={"contained"}
+                                <Button disabled={disabledToolbar} size={"small"} color={"primary"}
+                                        variant={"contained"}
                                         startIcon={<PlayCircle/>} onClick={this.resumeAll}>Resume</Button>
                                 <Tooltip title={"Remove element only from the list"}>
-                                    <Button size={"small"} color={"primary"} variant={"contained"}
+                                    <Button disabled={disabledToolbar} size={"small"} color={"primary"}
+                                            variant={"contained"}
                                             startIcon={<Delete/>} onClick={this.removeAll}>Remove</Button>
                                 </Tooltip>
                                 <Tooltip title={"Remove element from list and from the memory"}>
-                                    <Button size={"small"} color={"primary"} variant={"contained"}
+                                    <Button disabled={disabledToolbar} size={"small"} color={"primary"}
+                                            variant={"contained"}
                                             startIcon={<DeleteForever/>} onClick={this.destroyAll}>Delete</Button>
                                 </Tooltip>
                                 {/*TODO Enable when sorting is working                                */}
                                 {/*<Divider orientation={"vertical"}/>*/}
                                 {/*<IconButton disabled color={"primary"}><KeyboardArrowUp/></IconButton>*/}
                                 {/*<IconButton disabled color={"primary"}><KeyboardArrowDown/></IconButton>*/}
-                                {![CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING].includes(enabledView) && <><Divider
-                                    orientation={"vertical"}/>
-                                    <TextField size={"small"} variant={"outlined"} label={"Search"}
+                                {![CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, SETTINGS].includes(enabledView) && <>
+                                    <Divider
+                                        orientation={"vertical"}/>
+                                    <TextField disabled={disabledToolbar} size={"small"} variant={"outlined"}
+                                               label={"Search"}
                                                InputProps={{
                                                    startAdornment: (
                                                        <InputAdornment position="start">
@@ -543,14 +527,9 @@ export class WebTorrentGuiV2 extends Component {
                                                    this.setState({search: text})
                                                }}
                                     /></>}
-                                <Typography
-                                    sx={{display: "flex", alignItems: "center"}}
-                                    variant="body2"
-                                >
-                                    <Download
-                                        fontSize="small"/>{humanFileSize(actualDownload) + "/s"} {humanFileSize(actualUpload) + "/s"}<Upload
-                                    fontSize="small"/><br/>
-                                </Typography>
+                                {client && <SpeedMeter
+                                    client={client}
+                                />}
                             </Stack>
                             <Divider/>
                             {this.renderBody()}
@@ -567,20 +546,6 @@ export class WebTorrentGuiV2 extends Component {
                         onClose={() => {
                             this.setState({showAddTorrent: false})
                         }}
-                    />
-                    <ConfigDialog
-                        open={showConfig}
-                        key={"MODAL: " + downloadSpeed + downloadPath + uploadSpeed}
-                        onSubmit={(configuration) => {
-                            client.saveConf(configuration)
-                            this.setState({showConfig: false})
-                        }}
-                        onClose={() => {
-                            this.setState({showConfig: false})
-                        }}
-                        downloadPath={downloadPath}
-                        downloadSpeed={downloadSpeed}
-                        uploadSpeed={uploadSpeed}
                     />
                 </Container>
             </ThemeProvider>
@@ -606,10 +571,6 @@ export class WebTorrentGuiV2 extends Component {
         }
     }
 
-
-    openSettings = () => {
-        this.setState({showConfig: true})
-    }
     darkLightMode = (e, checked) => {
         let mode = checked ? "dark" : "light";
         let background = {
