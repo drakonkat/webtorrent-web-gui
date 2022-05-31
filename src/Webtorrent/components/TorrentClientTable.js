@@ -14,44 +14,44 @@ import {
 class TorrentClientTable extends Component {
     render() {
         let {onClick, torrents, predicate, callbackfn, search} = this.props
-        return <TableContainer component={Paper}>
-            <Table sx={{minWidth: 650}} size="small">
-                <TableHead>
-                    <TableRow>
-                        <TableCell padding={"checkbox"}>
+        return <TableContainer key={"TABLE"} component={Paper}>
+            <Table key={"table-intern"} sx={{minWidth: 650}} size="small">
+                <TableHead key={"table-head"}>
+                    <TableRow key={"table-row"}>
+                        <TableCell key={"checkbox"} padding={"checkbox"}>
                             <Checkbox
                                 onClick={onClick}
                                 checked={torrents.every(predicate)}
                                 color={"primary"}/>
                         </TableCell>
-                        <TableCell>
+                        <TableCell key={"name"}>
                             <Typography variant={"subtitle2"}>
                                 Name
                             </Typography>
                         </TableCell>
-                        <TableCell align="right">
+                        <TableCell key={"progress"} align="right">
                             <Typography variant={"subtitle2"}>
                                 Progress
                             </Typography>
                         </TableCell>
-                        <TableCell align="left">
+                        <TableCell key={"time-left"} align="left">
                             <Typography variant={"subtitle2"}>
                                 Time left
                             </Typography>
                         </TableCell>
-                        <TableCell align="left">
+                        <TableCell key={"size"} align="left">
                             <Typography variant={"subtitle2"}>
                                 Size
                             </Typography>
                         </TableCell>
-                        <TableCell align="right">
+                        <TableCell key={"action"} align="right">
                             <Typography variant={"subtitle2"}>
                                 Actions
                             </Typography>
                         </TableCell>
                     </TableRow>
                 </TableHead>
-                <TableBody>
+                <TableBody key={"table-body"}>
                     {torrents && torrents.map(callbackfn)}
                 </TableBody>
             </Table>

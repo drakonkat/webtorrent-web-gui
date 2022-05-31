@@ -180,6 +180,15 @@ export class WebTorrentHelper {
     }
 
 
+    getIndexer = () => {
+        return this.axios({
+            method: "get",
+            url: "/indexer",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
     getCategory = () => {
         return this.axios({
             method: "get",
@@ -189,6 +198,49 @@ export class WebTorrentHelper {
             }
         });
     }
+
+    addCategory = (data) => {
+        return this.axios({
+            method: "post",
+            url: "/category",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data
+        });
+    }
+
+    restoreCategory = () => {
+        return this.axios({
+            method: "patch",
+            url: "/category",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    editCategory = (id, data) => {
+        return this.axios({
+            method: "PUT",
+            url: "/category/" + id,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data
+        });
+    }
+
+    deleteCategory = (id) => {
+        return this.axios({
+            method: "DELETE",
+            url: "/category/" + id,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+
     searchIndexer = (type, q = " ") => {
         return this.axios({
             method: "get",

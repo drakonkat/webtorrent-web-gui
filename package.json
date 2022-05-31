@@ -1,6 +1,6 @@
 {
   "name": "webtorrent-web-gui",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "The component propose is to have a gui or a javascript class to manage a webtorrent-express-api server",
   "keywords": [
     "torrent",

@@ -29,9 +29,18 @@ class FilesTable extends Component {
 
     refreshStatus = async () => {
         try {
-            let {client, search, torrents, navigateBack, searchApi} = this.props
+            let {client, search, torrents, category, searchApi} = this.props
             this.setState({loading: true})
-            let res = await searchApi(search);
+            let elaboratedSearch = []
+            if (!search || search === " " || search === "") {
+                elaboratedSearch.push(category.defaultSearch)
+            } else {
+                elaboratedSearch.push(search)
+            }
+            if (category && category.tag) {
+                elaboratedSearch.push(...category.tag.split(","))
+            }
+            let res = await searchApi(category.type, elaboratedSearch.join(" "));
             this.setState({
                 files: res.data.map((file, index) => {
                     let disabled = torrents.some(t => {
@@ -90,7 +99,7 @@ class FilesTable extends Component {
                                         snackbar: true,
                                         snackbatMessage: "Adding torrent..."
                                     }, () => {
-                                        client.addTorrent({magnet: file.magnet})
+                                        client.addTorrent({magnet: file.magnet, path: category.path})
                                             .then((res) => {
                                                 this.setState({
                                                     snackbar: true,

@@ -24,8 +24,13 @@ import {
 import React from "react";
 import {CLIENT, CLIENT_DOWNLOAD, CLIENT_SEEDING, GAMES, MOVIES, MUSIC, SETTINGS, TVSHOW} from "../types";
 
+
+Menu.defaultProps = {
+    defaultMenu: []
+}
+
 export function Menu(props) {
-    let {logo, defaultMenu, changeView, enabledView} = props;
+    let {logo, defaultMenu, changeView, enabledView, category} = props;
     return <Stack
         sx={{
             paddingLeft: "10px",
@@ -33,7 +38,7 @@ export function Menu(props) {
         }}
     >
         <Stack sx={{height: "100%"}} justifyContent={"space-between"}>
-            <Stack>
+            <Stack sx={{height: "80%"}}>
                 {logo && <img style={{maxWidth: "250px"}} src={logo} alt={"logo"}/>}
                 <List dense={true}>
                     <ListItem>
@@ -90,14 +95,14 @@ export function Menu(props) {
                     </ListItemButton>
                 </List>
                 <Divider/>
-                <List dense={true}>
+                <List dense={true} sx={{overflowY: "auto"}}>
                     <ListItem>
                         <ListItemText
                             primary="Explore"
                         />
                     </ListItem>
                     {defaultMenu.map((x, index) => {
-                        let {tooltip, type, label} = x
+                        let {tooltip, type, label, id} = x
                         let icon;
                         switch (type) {
                             case MOVIES:
@@ -120,9 +125,9 @@ export function Menu(props) {
                                         title={tooltip || ""}>
                             <ListItemButton
                                 onClick={() => {
-                                    changeView(type)
+                                    changeView(type, id)
                                 }}
-                                selected={enabledView === type}
+                                selected={category && category.id === id}
                             >
                                 <ListItemAvatar>
                                     <Stack alignItems={"center"} justifyContent={"center"}>
@@ -138,7 +143,7 @@ export function Menu(props) {
                 </List>
                 <Divider/>
             </Stack>
-            <Stack>
+            <Stack sx={{maxHeight: "20%"}}>
                 <ListItem>
                     <ListItemText
                         primary="Configuration"

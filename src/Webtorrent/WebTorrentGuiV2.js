@@ -119,24 +119,12 @@ export class WebTorrentGuiV2 extends Component {
         },
         showAddTorrent: false,
         enabledView: CLIENT,
+        // enabledView: SETTINGS,
         search: "",
         severity: "success",
         snackbar: false,
         snackbarMessage: "Copied to clipboard",
-        defaultMenu: [
-            {
-                type: GAMES,
-                label: "Games",
-                tooltip: "A curated list of repacked games"
-            }, {
-                type: MOVIES,
-                label: "Movies",
-                tooltip: "Explore a list of movies"
-            }, {
-                type: TVSHOW,
-                label: "Tv"
-            },
-        ]
+        defaultMenu: []
 
     }
 
@@ -146,7 +134,7 @@ export class WebTorrentGuiV2 extends Component {
             await this.refreshStatus();
             await this.refreshCategory();
         })
-        this.interval = setInterval(this.refreshStatus, 5000)
+        this.interval = setInterval(this.refreshStatus, 7000)
     }
 
     componentWillUnmount() {
@@ -233,13 +221,14 @@ export class WebTorrentGuiV2 extends Component {
     }
 
     renderBody = () => {
-        let {enabledView, client, torrents, search, selectedTorrent} = this.state;
+        let {enabledView, enabledCategory, client, torrents, search, selectedTorrent} = this.state;
         let {remote} = this.props;
         switch (enabledView) {
             case SETTINGS:
                 return <SettingsPage
                     key={"VIEW_" + enabledView.toString()}
                     client={client}
+                    refreshCategory={this.refreshCategory}
                 />;
             case CLIENT:
             case CLIENT_DOWNLOAD:
@@ -255,7 +244,7 @@ export class WebTorrentGuiV2 extends Component {
                     }}
                     torrents={torrents}
                     predicate={x => selectedTorrent.includes(x.infoHash)}
-                    callbackfn={torrent => {
+                    callbackfn={(torrent, index) => {
                         let videoFiles = [];
                         torrent.files.forEach(f => {
                             if (f.mime && f.mime.includes("video")) {
@@ -281,7 +270,7 @@ export class WebTorrentGuiV2 extends Component {
                         })
                         let isRowSelected = this.isRowSelected(torrent.infoHash)
                         return (<>
-                            <TableRow key={torrent.infoHash} sx={{borderBottom: 'unset'}}>
+                            <TableRow key={torrent.infoHash || ("VALUE-" + index)} sx={{borderBottom: 'unset'}}>
                                 <TableCell padding={"checkbox"} component="th" scope="row">
                                     <Checkbox
                                         color="primary"
@@ -289,36 +278,38 @@ export class WebTorrentGuiV2 extends Component {
                                         onClick={() => this.onChangeRowSelection(torrent.infoHash)}
                                     />
                                 </TableCell>
-                                <TableCell component="th" scope="row">
+                                <TableCell key={"name-child"} component="th" scope="row">
                                     <Typography variant={"body2"}>{torrent.name}</Typography>
                                 </TableCell>
-                                <TableCell align="right">
+                                <TableCell key={"progress-child"} align="right">
                                     <LinearProgressWithLabel color={color}
                                                              value={torrent.progress * 100}/>
                                 </TableCell>
-                                <TableCell align="left">
+                                <TableCell key={"state"} align="left">
                                     <Typography variant={"body2"}>
                                         {state}
                                     </Typography>
                                 </TableCell>
-                                <TableCell align="left">
+                                <TableCell key={"size-child"} align="left">
                                     <Typography variant={"body2"}>
                                         {humanFileSize(size)}
                                     </Typography>
                                 </TableCell>
-                                <TableCell align="right">
+                                <TableCell key={"files-child"} align="right">
                                     {videoFiles.length > 0 &&
-                                        <Tooltip title={videoFiles.length === 1 ? "Reproduce video file" :
-                                            <List sx={{maxWidth: "200px", maxHeight: "400px", overflow: "auto"}}>
-                                                {videoFiles.map((file, index) => {
-                                                    return <ListItemButton key={"TO_PLAY_ELEMENT_" + index}
-                                                                           onClick={() => {
-                                                                               if (remote) {
-                                                                                   let a = document.createElement("a");
-                                                                                   a.href = client.fileStreamLink(file.id, file.name, remote);
-                                                                                   a.download = file.name;
-                                                                                   a.click();
-                                                                               } else {
+                                        <Tooltip key={"tooltip-video"}
+                                                 title={videoFiles.length === 1 ? "Reproduce video file" :
+                                                     <List
+                                                         sx={{maxWidth: "200px", maxHeight: "400px", overflow: "auto"}}>
+                                                         {videoFiles.map((file, index) => {
+                                                             return <ListItemButton key={"TO_PLAY_ELEMENT_" + index}
+                                                                                    onClick={() => {
+                                                                                        if (remote) {
+                                                                                            let a = document.createElement("a");
+                                                                                            a.href = client.fileStreamLink(file.id, file.name, remote);
+                                                                                            a.download = file.name;
+                                                                                            a.click();
+                                                                                        } else {
                                                                                    client.fileOpen(file.id);
                                                                                }
                                                                            }
@@ -338,7 +329,7 @@ export class WebTorrentGuiV2 extends Component {
                                                     </ListItemButton>
                                                 })}
                                             </List>}>
-                                            <IconButton onClick={() => {
+                                            <IconButton key={"play"} onClick={() => {
                                                 if (videoFiles.length === 1) {
                                                     let file = videoFiles[0]
                                                     if (remote) {
@@ -354,7 +345,7 @@ export class WebTorrentGuiV2 extends Component {
                                                 <PlayCircleOutline color={"primary"}/>
                                             </IconButton>
                                         </Tooltip>}
-                                    <Tooltip title={"Download torrent file"}>
+                                    <Tooltip key={"download-torrent-file"} title={"Download torrent file"}>
                                         <IconButton onClick={() => {
                                             let a = document.createElement("a");
                                             a.href = client.getTorrentFile(torrent.infoHash, torrent.name + ".torrent", remote);
@@ -364,7 +355,7 @@ export class WebTorrentGuiV2 extends Component {
                                             <DownloadForOffline color={"primary"}/>
                                         </IconButton>
                                     </Tooltip>
-                                    <Tooltip title={"Copy a link to share with friends!"}>
+                                    <Tooltip key={"copy-clipboard"} title={"Copy a link to share with friends!"}>
                                         <IconButton onClick={() => {
                                             copyToClipboard("https://tndsite.gitlab.io/quix-player/?magnet=" + torrent.infoHash, this.openSnackbar)
                                             // copyToClipboard("https://btorrent.xyz/download#" + torrent.infoHash, this.openSnackbar)
@@ -372,7 +363,7 @@ export class WebTorrentGuiV2 extends Component {
                                             <Link color={"primary"}/>
                                         </IconButton>
                                     </Tooltip>
-                                    <Tooltip title={"Copy magnet to the clipboard"}>
+                                    <Tooltip key={"magnet-copy"} title={"Copy magnet to the clipboard"}>
                                         <IconButton onClick={() => {
                                             copyToClipboard(torrent.magnet, this.openSnackbar)
                                         }}>
@@ -382,7 +373,8 @@ export class WebTorrentGuiV2 extends Component {
                                 </TableCell>
                             </TableRow>
                             <TableRow key={"Secondary-" + torrent.infoHash}>
-                                <TableCell padding={"checkbox"} sx={{paddingBottom: 0, paddingTop: 0}}
+                                <TableCell key={"secondary-checkbox"} padding={"checkbox"}
+                                           sx={{paddingBottom: 0, paddingTop: 0}}
                                            colSpan={6}>
                                     <Collapse in={isRowSelected} timeout="auto" unmountOnExit>
                                         {torrent.files.map(f => {
@@ -400,13 +392,12 @@ export class WebTorrentGuiV2 extends Component {
             case MOVIES:
             default:
                 return <FilesTable
-                    key={"FILES_TABLE_" + enabledView.toString()}
+                    key={"FILES_TABLE_" + (enabledCategory ? enabledCategory.id : enabledView.toString())}
                     client={client}
                     torrents={torrents}
                     search={search}
-                    searchApi={(q) => {
-                        return client.searchIndexer(enabledView, q)
-                    }}
+                    searchApi={client.searchIndexer}
+                    category={enabledCategory}
                 />
 
         }
@@ -423,7 +414,8 @@ export class WebTorrentGuiV2 extends Component {
             severity,
             snackbar,
             snackbarMessage,
-            defaultMenu
+            defaultMenu,
+            enabledCategory
         } = this.state;
         let {logo} = this.props;
         let disabledToolbar = enabledView === SETTINGS;
@@ -449,10 +441,20 @@ export class WebTorrentGuiV2 extends Component {
                             defaultMenu={defaultMenu}
                             logo={logo}
                             enabledView={enabledView}
-                            changeView={(enabledView) => {
-                                this.setState({
-                                    enabledView
-                                })
+                            category={enabledCategory}
+                            changeView={(enabledView, id) => {
+                                let categoryIndex = defaultMenu.findIndex(x => x.id === id);
+                                if (categoryIndex !== -1) {
+                                    this.setState({
+                                        enabledView,
+                                        enabledCategory: defaultMenu[categoryIndex]
+                                    })
+                                } else {
+                                    this.setState({
+                                        enabledView,
+                                        enabledCategory: undefined
+                                    })
+                                }
                             }}
                             onChange={this.darkLightMode}
                             filterDownload={() => {

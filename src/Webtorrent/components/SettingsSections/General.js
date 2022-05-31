@@ -56,9 +56,11 @@ function General(props) {
                     id={"downloadSpeed"}
                     type="number"
                     variant={"outlined"}
-                    value={downloadSpeed}
+                    value={downloadSpeed > 0 ? downloadSpeed / 1024 : downloadSpeed}
                     helperText={downloadSpeed == -1 ? "unlimited" : humanFileSize(downloadSpeed) + "/s"}
-                    onChange={(e) => setConfiguration({...configuration, downloadSpeed: e.target.value})}
+                    onChange={(e) => {
+                        setConfiguration({...configuration, downloadSpeed: Math.max(-1, e.target.value * 1024)})
+                    }}
 
                 />
             </Grid>
@@ -68,9 +70,12 @@ function General(props) {
                     id={"uploadSpeed"}
                     type="number"
                     variant={"outlined"}
-                    value={uploadSpeed}
+                    value={uploadSpeed > 0 ? uploadSpeed / 1024 : uploadSpeed}
                     helperText={uploadSpeed == -1 ? "unlimited" : humanFileSize(uploadSpeed) + "/s"}
-                    onChange={(e) => setConfiguration({...configuration, uploadSpeed: e.target.value})}
+                    onChange={(e) => setConfiguration({
+                        ...configuration,
+                        uploadSpeed: Math.max(-1, e.target.value * 1024)
+                    })}
                 />
             </Grid>
         </Grid>
