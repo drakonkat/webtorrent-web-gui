@@ -102,6 +102,15 @@ export class WebTorrentHelper {
             }
         });
     }
+    folderOpen = (id) => {
+        return this.axios({
+            method: "get",
+            url: "/file/openFolder?torrentId=" + id,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
     fileStream = (id) => {
         return this.axios({
             method: "get",

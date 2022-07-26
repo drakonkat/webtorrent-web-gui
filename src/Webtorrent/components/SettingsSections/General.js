@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Grid, LinearProgress, Stack, TextField, Typography} from "@mui/material";
+import {Button, Checkbox, FormControlLabel, Grid, LinearProgress, Stack, TextField, Typography} from "@mui/material";
 import {humanFileSize} from "../../utils";
 import {Save} from "@mui/icons-material";
 
@@ -24,9 +24,7 @@ function General(props) {
     }, [])
 
     let {
-        downloadPath,
-        downloadSpeed,
-        uploadSpeed
+        downloadPath, downloadSpeed, uploadSpeed
     } = configuration
     if (loading) {
         return <LinearProgress variant={"indeterminate"} color={"success"}/>
@@ -51,15 +49,28 @@ function General(props) {
                 />
             </Grid>
             <Grid item>
-                <Typography variant={"subtitle2"}> Download speed (Bytes/s -1 means unlimited) </Typography>
+                <Typography variant={"subtitle2"}> Download speed (Kb/s) </Typography>
                 <TextField
                     id={"downloadSpeed"}
                     type="number"
                     variant={"outlined"}
-                    value={downloadSpeed > 0 ? downloadSpeed / 1024 : downloadSpeed}
-                    helperText={downloadSpeed == -1 ? "unlimited" : humanFileSize(downloadSpeed) + "/s"}
+                    value={downloadSpeed > 0 ? downloadSpeed / 1000 : downloadSpeed}
+                    helperText={<FormControlLabel
+                        control={<Checkbox onChange={(e) => {
+                            if (e.target.checked) {
+                                setConfiguration({...configuration, downloadSpeed: -1})
+                            } else {
+                                setConfiguration({...configuration, downloadSpeed: 8000000})
+                            }
+                        }}
+                                           checked={downloadSpeed == -1}
+                        />}
+                        label={"Check for unlimited (" + humanFileSize(downloadSpeed, true) + "/s)"}
+                        labelPlacement="end"
+                    />}
+                    // helperText={downloadSpeed == -1 ? "unlimited" : humanFileSize(downloadSpeed) + "/s"}
                     onChange={(e) => {
-                        setConfiguration({...configuration, downloadSpeed: Math.max(-1, e.target.value * 1024)})
+                        setConfiguration({...configuration, downloadSpeed: Math.max(-1, e.target.value * 1000)})
                     }}
 
                 />
@@ -70,11 +81,22 @@ function General(props) {
                     id={"uploadSpeed"}
                     type="number"
                     variant={"outlined"}
-                    value={uploadSpeed > 0 ? uploadSpeed / 1024 : uploadSpeed}
-                    helperText={uploadSpeed == -1 ? "unlimited" : humanFileSize(uploadSpeed) + "/s"}
+                    value={uploadSpeed > 0 ? uploadSpeed / 1000 : uploadSpeed}
+                    helperText={<FormControlLabel
+                        control={<Checkbox onChange={(e) => {
+                            if (e.target.checked) {
+                                setConfiguration({...configuration, uploadSpeed: -1})
+                            } else {
+                                setConfiguration({...configuration, uploadSpeed: 8000000})
+                            }
+                        }}
+                                           checked={uploadSpeed == -1}
+                        />}
+                        label={"Check for unlimited (" + humanFileSize(uploadSpeed, true) + "/s)"}
+                        labelPlacement="end"
+                    />}
                     onChange={(e) => setConfiguration({
-                        ...configuration,
-                        uploadSpeed: Math.max(-1, e.target.value * 1024)
+                        ...configuration, uploadSpeed: Math.max(-1, e.target.value * 1000)
                     })}
                 />
             </Grid>

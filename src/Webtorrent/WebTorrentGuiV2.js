@@ -29,6 +29,7 @@ import {
     Delete,
     DeleteForever,
     DownloadForOffline,
+    FolderOpen,
     Link,
     OndemandVideo,
     PauseCircle,
@@ -310,25 +311,26 @@ export class WebTorrentGuiV2 extends Component {
                                                                                             a.download = file.name;
                                                                                             a.click();
                                                                                         } else {
-                                                                                   client.fileOpen(file.id);
-                                                                               }
-                                                                           }
-                                                                           }
-                                                    >
-                                                        <ListItemAvatar>
-                                                            <Stack alignItems={"center"} justifyContent={"center"}>
-                                                                {`${Math.round(
-                                                                    file.progress * 100,
-                                                                )}%`}
-                                                                <OndemandVideo/>
-                                                            </Stack>
-                                                        </ListItemAvatar>
-                                                        <ListItemText
-                                                            primary={file.name}
-                                                        />
-                                                    </ListItemButton>
-                                                })}
-                                            </List>}>
+                                                                                            client.fileOpen(file.id);
+                                                                                        }
+                                                                                    }
+                                                                                    }
+                                                             >
+                                                                 <ListItemAvatar>
+                                                                     <Stack alignItems={"center"}
+                                                                            justifyContent={"center"}>
+                                                                         {`${Math.round(
+                                                                             file.progress * 100,
+                                                                         )}%`}
+                                                                         <OndemandVideo/>
+                                                                     </Stack>
+                                                                 </ListItemAvatar>
+                                                                 <ListItemText
+                                                                     primary={file.name}
+                                                                 />
+                                                             </ListItemButton>
+                                                         })}
+                                                     </List>}>
                                             <IconButton key={"play"} onClick={() => {
                                                 if (videoFiles.length === 1) {
                                                     let file = videoFiles[0]
@@ -345,6 +347,13 @@ export class WebTorrentGuiV2 extends Component {
                                                 <PlayCircleOutline color={"primary"}/>
                                             </IconButton>
                                         </Tooltip>}
+                                    {!remote && <Tooltip key={"open-torrent-folder"} title={"Open torrent folder"}>
+                                        <IconButton onClick={() => {
+                                            client.folderOpen(torrent.infoHash);
+                                        }}>
+                                            <FolderOpen color={"primary"}/>
+                                        </IconButton>
+                                    </Tooltip>}
                                     <Tooltip key={"download-torrent-file"} title={"Download torrent file"}>
                                         <IconButton onClick={() => {
                                             let a = document.createElement("a");
