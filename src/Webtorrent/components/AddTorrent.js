@@ -7,13 +7,11 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    IconButton,
-    InputAdornment,
     Stack,
     TextField,
     Typography
 } from "@mui/material";
-import {FileUploadOutlined, Save} from "@mui/icons-material";
+import {Save} from "@mui/icons-material";
 
 class AddTorrent extends Component {
     state = {
@@ -50,24 +48,24 @@ class AddTorrent extends Component {
                                 onChange={(e) => {
                                     this.setState({magnet: e.target.value})
                                 }}
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton variant="contained"
-                                                        component="label">
-                                                <FileUploadOutlined/>
-                                                <input
-                                                    type="file"
-                                                    hidden
-                                                    accept={".torrent"}
-                                                    onChange={(e) => {
-                                                        this.setState({files: e.target.files, magnet: null})
-                                                    }}
-                                                />
-                                            </IconButton>
-                                        </InputAdornment>
-                                    )
-                                }}
+                                // InputProps={{
+                                //     endAdornment: (
+                                //         <InputAdornment position="end">
+                                //             <IconButton variant="contained"
+                                //                         component="label">
+                                //                 <FileUploadOutlined/>
+                                //                 <input
+                                //                     type="file"
+                                //                     hidden
+                                //                     accept={".torrent"}
+                                //                     onChange={(e) => {
+                                //                         this.setState({files: e.target.files, magnet: null})
+                                //                     }}
+                                //                 />
+                                //             </IconButton>
+                                //         </InputAdornment>
+                                //     )
+                                // }}
                             />}
                         <br/>
 
