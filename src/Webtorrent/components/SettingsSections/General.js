@@ -1,5 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Checkbox, FormControlLabel, Grid, LinearProgress, Stack, TextField, Typography} from "@mui/material";
+import {
+    Button,
+    Checkbox,
+    FormControlLabel,
+    Grid,
+    LinearProgress,
+    Stack,
+    Switch,
+    TextField,
+    Typography
+} from "@mui/material";
 import {humanFileSize} from "../../utils";
 import {Save} from "@mui/icons-material";
 
@@ -11,8 +21,13 @@ function General(props) {
         try {
             let {client} = props
             let confRes = await client.getConf();
-            setConfiguration(confRes.data)
-            setDefaultConfiguration(confRes.data)
+            let data = {
+                ...confRes.data,
+                alternativeTimeStart: confRes.data.alternativeTimeStart ? confRes.data.alternativeTimeStart.slice(0, 5) : null,
+                alternativeTimeEnd: confRes.data.alternativeTimeEnd ? confRes.data.alternativeTimeEnd.slice(0, 5) : null,
+            }
+            setConfiguration(data)
+            setDefaultConfiguration(data)
         } catch (e) {
             console.error(e)
         }
@@ -24,12 +39,17 @@ function General(props) {
     }, [])
 
     let {
-        downloadPath, downloadSpeed, uploadSpeed
+        downloadPath,
+        download,
+        upload,
+        alternativeTimeStart,
+        alternativeTimeEnd,
+        alternativeDownload,
+        alternativeUpload,
     } = configuration
     if (loading) {
         return <LinearProgress variant={"indeterminate"} color={"success"}/>
     }
-
     return (<Stack
         key={"Container_Content"}
         spacing={2}
@@ -51,26 +71,26 @@ function General(props) {
             <Grid item>
                 <Typography variant={"subtitle2"}> Download speed (Kb/s) </Typography>
                 <TextField
-                    id={"downloadSpeed"}
+                    id={"download"}
                     type="number"
                     variant={"outlined"}
-                    value={downloadSpeed > 0 ? downloadSpeed / 1000 : downloadSpeed}
+                    value={download > 0 ? download / 1000 : download}
                     helperText={<FormControlLabel
                         control={<Checkbox onChange={(e) => {
                             if (e.target.checked) {
-                                setConfiguration({...configuration, downloadSpeed: -1})
+                                setConfiguration({...configuration, download: -1})
                             } else {
-                                setConfiguration({...configuration, downloadSpeed: 8000000})
+                                setConfiguration({...configuration, download: 8000000})
                             }
                         }}
-                                           checked={downloadSpeed == -1}
+                                           checked={download == -1}
                         />}
-                        label={"Check for unlimited (" + humanFileSize(downloadSpeed, true) + "/s)"}
+                        label={"Check for unlimited (" + humanFileSize(download, true) + "/s)"}
                         labelPlacement="end"
                     />}
-                    // helperText={downloadSpeed == -1 ? "unlimited" : humanFileSize(downloadSpeed) + "/s"}
+                    // helperText={download == -1 ? "unlimited" : humanFileSize(download) + "/s"}
                     onChange={(e) => {
-                        setConfiguration({...configuration, downloadSpeed: Math.max(-1, e.target.value * 1000)})
+                        setConfiguration({...configuration, download: Math.max(-1, e.target.value * 1000)})
                     }}
 
                 />
@@ -78,28 +98,141 @@ function General(props) {
             <Grid item>
                 <Typography variant={"subtitle2"}> Upload speed (Bytes/s -1 means unlimited)</Typography>
                 <TextField
-                    id={"uploadSpeed"}
+                    id={"upload"}
                     type="number"
                     variant={"outlined"}
-                    value={uploadSpeed > 0 ? uploadSpeed / 1000 : uploadSpeed}
+                    value={upload > 0 ? upload / 1000 : upload}
                     helperText={<FormControlLabel
                         control={<Checkbox onChange={(e) => {
                             if (e.target.checked) {
-                                setConfiguration({...configuration, uploadSpeed: -1})
+                                setConfiguration({...configuration, upload: -1})
                             } else {
-                                setConfiguration({...configuration, uploadSpeed: 8000000})
+                                setConfiguration({...configuration, upload: 8000000})
                             }
                         }}
-                                           checked={uploadSpeed == -1}
+                                           checked={upload == -1}
                         />}
-                        label={"Check for unlimited (" + humanFileSize(uploadSpeed, true) + "/s)"}
+                        label={"Check for unlimited (" + humanFileSize(upload, true) + "/s)"}
                         labelPlacement="end"
                     />}
                     onChange={(e) => setConfiguration({
-                        ...configuration, uploadSpeed: Math.max(-1, e.target.value * 1000)
+                        ...configuration, upload: Math.max(-1, e.target.value * 1000)
                     })}
                 />
             </Grid>
+            <Grid item>
+                <Typography variant={"subtitle2"}>Alternative speed limit</Typography>
+                <FormControlLabel
+                    control={<Switch color="primary"
+                                     checked={!!alternativeTimeStart}
+                                     onChange={(e) => {
+                                         if (e.target.checked) {
+                                             let tempStart = new Date();
+                                             tempStart.setMinutes(0);
+                                             let tempEnd = new Date();
+                                             tempEnd.setMinutes(0);
+                                             tempEnd.setHours(Math.min(tempStart.getHours() + 1, 23));
+                                             setConfiguration({
+                                                 ...configuration,
+                                                 alternativeTimeStart: tempStart.toLocaleTimeString().slice(0, 5),
+                                                 alternativeTimeEnd: tempEnd.toLocaleTimeString().slice(0, 5),
+                                                 alternativeUpload: upload,
+                                                 alternativeDownload: download
+                                             })
+                                         } else {
+                                             setConfiguration({
+                                                 ...configuration,
+                                                 alternativeTimeStart: null,
+                                                 alternativeTimeEnd: null,
+                                                 alternativeUpload: null,
+                                                 alternativeDownload: null
+                                             })
+                                         }
+                                     }}/>}
+                    label="Enabled"
+                />
+            </Grid>
+            {!!alternativeTimeStart && <>
+                <Grid item>
+                    <Typography variant={"subtitle2"}>Alternative start time</Typography>
+                    <TextField
+                        id={"startTime"}
+                        type="time"
+                        variant={"outlined"}
+                        value={alternativeTimeStart}
+                        onChange={(e) => setConfiguration({
+                            ...configuration, alternativeTimeStart: e.target.value
+                        })}
+                    />
+                </Grid>
+                <Grid item>
+                    <Typography variant={"subtitle2"}>Alternative end time</Typography>
+                    <TextField
+                        id={"endTime"}
+                        type="time"
+                        variant={"outlined"}
+                        value={alternativeTimeEnd}
+                        onChange={(e) => setConfiguration({
+                            ...configuration, alternativeTimeEnd: e.target.value
+                        })}
+                    />
+                </Grid>
+                <Grid item>
+                    <Typography variant={"subtitle2"}> Alternative download speed (Kb/s) </Typography>
+                    <TextField
+                        id={"alternativeDownload"}
+                        type="number"
+                        variant={"outlined"}
+                        value={alternativeDownload > 0 ? alternativeDownload / 1000 : alternativeDownload}
+                        helperText={<FormControlLabel
+                            control={<Checkbox onChange={(e) => {
+                                if (e.target.checked) {
+                                    setConfiguration({...configuration, alternativeDownload: -1})
+                                } else {
+                                    setConfiguration({...configuration, alternativeDownload: 8000000})
+                                }
+                            }}
+                                               checked={alternativeDownload == -1}
+                            />}
+                            label={"Check for unlimited (" + humanFileSize(alternativeDownload, true) + "/s)"}
+                            labelPlacement="end"
+                        />}
+                        onChange={(e) => {
+                            setConfiguration({
+                                ...configuration,
+                                alternativeDownload: Math.max(-1, e.target.value * 1000)
+                            })
+                        }}
+
+                    />
+                </Grid>
+                <Grid item>
+                    <Typography variant={"subtitle2"}> Alternative upload speed (Bytes/s -1 means
+                        unlimited)</Typography>
+                    <TextField
+                        id={"alternativeUpload"}
+                        type="number"
+                        variant={"outlined"}
+                        value={alternativeUpload > 0 ? alternativeUpload / 1000 : alternativeUpload}
+                        helperText={<FormControlLabel
+                            control={<Checkbox onChange={(e) => {
+                                if (e.target.checked) {
+                                    setConfiguration({...configuration, upload: -1})
+                                } else {
+                                    setConfiguration({...configuration, upload: 8000000})
+                                }
+                            }}
+                                               checked={alternativeUpload == -1}
+                            />}
+                            label={"Check for unlimited (" + humanFileSize(alternativeUpload, true) + "/s)"}
+                            labelPlacement="end"
+                        />}
+                        onChange={(e) => setConfiguration({
+                            ...configuration, alternativeUpload: Math.max(-1, e.target.value * 1000)
+                        })}
+                    />
+                </Grid>
+            </>}
         </Grid>
         <Stack direction={"row"} justifyContent={"flex-end"}>
             <Button disabled={defaultConfiguration === configuration} startIcon={<Save/>} variant={"contained"}
